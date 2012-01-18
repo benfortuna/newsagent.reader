@@ -10,6 +10,29 @@
   <version>0.9-SNAPSHOT</version>
   <name>Newsagent Reader</name>
   <description>A desktop feed subscription viewer</description>
+	<inceptionYear>2012</inceptionYear>  
+	<licenses>
+		<license>
+            <name>${pom.name} - License</name>
+			<url>https://newsagent.googlecode.com/hg/LICENSE</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:hg:https://code.google.com/p/newsagent.reader</connection>
+		<developerConnection>scm:hg:https://code.google.com/p/newsagent.reader</developerConnection>
+		<url>https://code.google.com/p/newsagent/source/browse?repo=reader</url>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+			
   <dependencies>
   	<dependency>
   		<groupId>org.mnode.newsagent</groupId>
