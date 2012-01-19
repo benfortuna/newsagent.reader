@@ -31,24 +31,63 @@
  */
 package org.mnode.newsagent.reader
 
-import groovy.lang.ExpandoMetaClass.SubClassDefiningClosure;
-
 import java.awt.BorderLayout
 
-import javax.swing.JScrollPane;
+import javax.jcr.SimpleCredentials
+import javax.naming.InitialContext
+import javax.swing.JFrame
+import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.text.html.StyleSheet
 
+import org.apache.jackrabbit.core.jndi.RegistryHelper
 import org.mnode.ousia.HTMLEditorKitExt
 import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.HyperlinkBrowser.HyperlinkFeedback
 import org.mnode.ousia.layer.StatusLayerUI
 
+try {
+	new Socket('localhost', 1337)
+	println 'Already running'
+	System.exit(0)
+}
+catch (Exception e) {
+}
+
+new File(System.getProperty("user.home"), ".newsagent").mkdir()
+def configFile = new File(System.getProperty("user.home"), ".newsagent/config.xml")
+configFile.text = Reader.getResourceAsStream("/config.xml").text
+
 def ousia = new OusiaBuilder()
 
+Thread.start {
+	ServerSocket server = [1337]
+	while(true) {
+		try {
+			server.accept {}
+		}
+		finally {
+			ousia.doLater {
+				frame.visible = true
+			}
+		}
+	}
+}
+
+File repositoryLocation = [System.getProperty("user.home"), ".newsagent/data"]
+
+def context = new InitialContext()
+RegistryHelper.registerRepository(context, 'newsagent', configFile.absolutePath, repositoryLocation.absolutePath, false)
+def repository = context.lookup('newsagent')
+
+def session = repository.login(new SimpleCredentials('readonly', ''.toCharArray()))
+Runtime.getRuntime().addShutdownHook({
+	RegistryHelper.unregisterRepository(context, 'newsagent')
+})
+
 ousia.edt {
-	frame(title: rs('Newsagent Reader'), show: true, locationRelativeTo: null, trackingEnabled: true, size: [600, 400]) {
+	frame(title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400]) {
 		borderLayout()
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {

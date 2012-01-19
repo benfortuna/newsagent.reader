@@ -54,5 +54,9 @@
   		<artifactId>jxlayer</artifactId>
   		<version>[3.0.4,)</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.apache.jackrabbit</groupId>
+  		<artifactId>jackrabbit-core</artifactId>
+  	</dependency>
   </dependencies>
 </project>
