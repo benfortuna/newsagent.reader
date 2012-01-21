@@ -31,6 +31,10 @@
  */
 package org.mnode.newsagent.reader;
 
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 public class SubscriptionTreeTableModel extends AbstractTreeTableModel {
@@ -50,24 +54,60 @@ public class SubscriptionTreeTableModel extends AbstractTreeTableModel {
 		return COLUMNS[column];
 	}
 	
-	public Object getValueAt(Object arg0, int arg1) {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getValueAt(Object node, int column) {
+		try {
+			final Node feedNode = (Node) node;
+			
+			switch (column) {
+				case 0: return (feedNode.hasProperty("mn:title")) ? feedNode.getProperty("mn:title").getString() : feedNode.getName();
+				case 1: return ((Node) node).getNodes().getSize();
+				default: return null;
+			}
+		}
+		catch (RepositoryException e) {
+			throw new ReaderException(e);
+		}
 	}
 
-	public Object getChild(Object arg0, int arg1) {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getChild(Object parent, int index) {
+		try {
+			final NodeIterator nodes = ((Node) parent).getNodes();
+			nodes.skip(index);
+			if (nodes.hasNext()) {
+				return nodes.nextNode();
+			}
+			return null;
+		}
+		catch (RepositoryException e) {
+			throw new ReaderException(e);
+		}
 	}
 
-	public int getChildCount(Object arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getChildCount(Object node) {
+		try {
+			return (int) ((Node) node).getNodes().getSize();
+		}
+		catch (RepositoryException e) {
+			throw new ReaderException(e);
+		}
 	}
 
-	public int getIndexOfChild(Object arg0, Object arg1) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int getIndexOfChild(Object parent, Object child) {
+		try {
+			final NodeIterator nodes = ((Node) parent).getNodes();
+			int index = 0;
+			while (nodes.hasNext()) {
+				final Node node = nodes.nextNode();
+				if (node.isSame((Node) child)) {
+					return index;
+				}
+				index++;
+			}
+			return 0;
+		}
+		catch (RepositoryException e) {
+			throw new ReaderException(e);
+		}
 	}
 
 }
