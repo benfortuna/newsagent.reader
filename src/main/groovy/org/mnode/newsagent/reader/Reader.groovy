@@ -33,6 +33,7 @@ package org.mnode.newsagent.reader
 
 import java.awt.BorderLayout
 
+import javax.jcr.NamespaceException
 import javax.jcr.SimpleCredentials
 import javax.naming.InitialContext
 import javax.swing.JFrame
@@ -41,6 +42,10 @@ import javax.swing.JSplitPane
 import javax.swing.text.html.StyleSheet
 
 import org.apache.jackrabbit.core.jndi.RegistryHelper
+import org.mnode.newsagent.FeedReader
+import org.mnode.newsagent.FeedReaderImpl
+import org.mnode.newsagent.FeedResolverImpl
+import org.mnode.newsagent.jcr.JcrFeedCallback
 import org.mnode.ousia.HTMLEditorKitExt
 import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
@@ -86,13 +91,24 @@ Runtime.getRuntime().addShutdownHook({
 	RegistryHelper.unregisterRepository(context, 'newsagent')
 })
 
+try {
+	session.workspace.namespaceRegistry.registerNamespace('mn', 'http://mnode.org/namespace')
+}
+catch (NamespaceException e) {
+	println e.message
+}
+JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions']
+
+FeedReader reader = new FeedReaderImpl()
+reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
+
 ousia.edt {
 	frame(title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400]) {
 		borderLayout()
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-					treeTable(constraints: 'left', treeTableModel: new SubscriptionTreeTableModel(null))
+					treeTable(constraints: 'left', treeTableModel: new SubscriptionTreeTableModel(session.rootNode['mn:subscriptions']))
 				}
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
 					table(constraints: 'right')

@@ -85,7 +85,12 @@ public class SubscriptionTreeTableModel extends AbstractTreeTableModel {
 
 	public int getChildCount(Object node) {
 		try {
-			return (int) ((Node) node).getNodes().getSize();
+			if (((Node) node).hasProperty("mn:title")) {
+				return 0;
+			}
+			else {
+				return (int) ((Node) node).getNodes().getSize();
+			}
 		}
 		catch (RepositoryException e) {
 			throw new ReaderException(e);
