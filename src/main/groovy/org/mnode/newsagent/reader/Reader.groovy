@@ -39,6 +39,8 @@ import javax.naming.InitialContext
 import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
+import javax.swing.ListSelectionModel
+import javax.swing.table.DefaultTableModel
 import javax.swing.text.html.StyleSheet
 
 import org.apache.jackrabbit.core.jndi.RegistryHelper
@@ -108,10 +110,25 @@ ousia.edt {
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-					treeTable(constraints: 'left', treeTableModel: new SubscriptionTreeTableModel(session.rootNode['mn:subscriptions']))
+					treeTable(id: 'subscriptionTree', constraints: 'left', treeTableModel: new SubscriptionTreeTableModel(session.rootNode['mn:subscriptions']))
+	                subscriptionTree.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+	                subscriptionTree.selectionModel.valueChanged = {
+						def selectedPath = subscriptionTree.getPathForRow(subscriptionTree.selectedRow)
+	                    if (selectedPath) {
+	                        edt {
+	                            entryTable.model = new FeedEntryTableModel(selectedPath.lastPathComponent)
+	                        }
+	                    }
+	                    else {
+	                        edt {
+	                            entryTable.model = new DefaultTableModel()
+	                        }
+	                    }
+					}
+					subscriptionTree.packAll()
 				}
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-					table(constraints: 'right')
+					table(id: 'entryTable', constraints: 'right')
 				}
 			}
 			panel(constraints: 'right') {
