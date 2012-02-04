@@ -194,4 +194,5 @@
 			<artifactId>jackrabbit-core</artifactId>
 		</dependency>
 	</dependencies>
+	<url>http://basetools.org/newsagent</url>
 </project>
