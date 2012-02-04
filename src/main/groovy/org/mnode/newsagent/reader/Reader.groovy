@@ -55,7 +55,7 @@ import org.mnode.ousia.HyperlinkBrowser.HyperlinkFeedback
 import org.mnode.ousia.layer.StatusLayerUI
 
 try {
-	new Socket('localhost', 1337)
+	new Socket('localhost', 1338)
 	println 'Already running'
 	System.exit(0)
 }
@@ -69,7 +69,7 @@ configFile.text = Reader.getResourceAsStream("/config.xml").text
 def ousia = new OusiaBuilder()
 
 Thread.start {
-	ServerSocket server = [1337]
+	ServerSocket server = [1338]
 	while(true) {
 		try {
 			server.accept {}
@@ -105,7 +105,14 @@ FeedReader reader = new FeedReaderImpl()
 reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 
 ousia.edt {
-	frame(title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400]) {
+	imageIcon(id: 'logo64', '/logo64.png')
+	imageIcon(id: 'logo48', '/logo48.png')
+	imageIcon(id: 'logo32', '/logo32.png')
+	imageIcon(id: 'logo16', '/logo16.png')
+	
+	frame(title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400],
+		iconImages: [logo64.image, logo48.image, logo32.image, logo16.image]) {
+		
 		borderLayout()
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {
