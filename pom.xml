@@ -52,6 +52,7 @@
 			<groupId>org.codehaus.mojo.webstart
 			</groupId>
 			<artifactId>webstart-maven-plugin</artifactId>
+			<version>1.0-beta-2</version>
 			<executions>
 				<execution>
 					<phase>package</phase>
@@ -142,6 +143,13 @@
 		<!-- Deploy webstart -->
 		<plugin>
 			<artifactId>maven-antrun-plugin</artifactId>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.ant</groupId>
+					<artifactId>ant-jsch</artifactId>
+					<version>1.8.2</version>
+				</dependency>
+			</dependencies>
 			<executions>
 				<execution>
 					<phase>deploy</phase>
