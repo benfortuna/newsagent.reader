@@ -48,6 +48,7 @@ import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
 import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
+import org.mnode.ousia.DialogExceptionHandler
 import org.mnode.ousia.HTMLEditorKitExt
 import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
@@ -160,4 +161,6 @@ ousia.edt {
 			}
 		}
 	}
+		
+	Thread.defaultUncaughtExceptionHandler = new DialogExceptionHandler()
 }
