@@ -54,6 +54,7 @@ import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.HyperlinkBrowser.HyperlinkFeedback
 import org.mnode.ousia.layer.StatusLayerUI
+import org.pushingpixels.substance.api.fonts.SubstanceFontUtilities
 
 try {
 	new Socket('localhost', 1338)
@@ -106,6 +107,8 @@ FeedReader reader = new FeedReaderImpl()
 reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 
 ousia.edt {
+	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
+	
 	imageIcon(id: 'logo64', '/logo64.png')
 	imageIcon(id: 'logo48', '/logo48.png')
 	imageIcon(id: 'logo32', '/logo32.png')
