@@ -40,7 +40,6 @@ import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.ListSelectionModel
-import javax.swing.table.DefaultTableModel
 import javax.swing.text.html.StyleSheet
 
 import org.apache.jackrabbit.core.jndi.RegistryHelper
@@ -53,8 +52,17 @@ import org.mnode.ousia.HTMLEditorKitExt
 import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.HyperlinkBrowser.HyperlinkFeedback
+import org.mnode.ousia.glazedlists.DateExpansionModel
 import org.mnode.ousia.layer.StatusLayerUI
 import org.pushingpixels.substance.api.fonts.SubstanceFontUtilities
+
+import ca.odell.glazedlists.BasicEventList
+import ca.odell.glazedlists.TreeList.Format
+import ca.odell.glazedlists.gui.TableFormat
+import ca.odell.glazedlists.swing.EventTableModel
+import ca.odell.glazedlists.swing.TreeTableSupport
+
+import com.ocpsoft.pretty.time.PrettyTime
 
 try {
 	new Socket('localhost', 1338)
@@ -127,19 +135,82 @@ ousia.edt {
 						def selectedPath = subscriptionTree.getPathForRow(subscriptionTree.selectedRow)
 	                    if (selectedPath) {
 	                        edt {
-	                            entryTable.model = new FeedEntryTableModel(selectedPath.lastPathComponent)
+//	                            entryTable.model = new FeedEntryTableModel(selectedPath.lastPathComponent)
+								entries.withWriteLock {
+									clear()
+									selectedPath.lastPathComponent.nodes.each {
+										add it
+									}
+								}
 	                        }
 	                    }
 	                    else {
 	                        edt {
-	                            entryTable.model = new DefaultTableModel()
+//	                            entryTable.model = new DefaultTableModel()
+								entries.withWriteLock {
+									clear()
+								}
 	                        }
 	                    }
 					}
 					subscriptionTree.packAll()
 				}
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-					table(id: 'entryTable', constraints: 'right')
+					table(id: 'entryTable', constraints: 'right') {
+						
+						def dateGroup = { date ->
+							def today = Calendar.instance
+							today.clearTime()
+							def yesterday = Calendar.instance
+							yesterday.add Calendar.DAY_OF_YEAR, -1
+							yesterday.clearTime()
+							if (date.time < yesterday.time) {
+								return 'Older Items'
+							}
+							else if (date.time < today.time) {
+								return 'Yesterday'
+							}
+							else {
+								return 'Today'
+							}
+						}
+						
+						// XXX: global..
+						entries = new BasicEventList()
+						treeList(filterList(sortedList(entries, comparator: { b, a -> a['mn:date'].date.time <=> b['mn:date'].date.time } as Comparator<?>)),
+							 expansionModel: new DateExpansionModel(), format: [
+						        allowsChildren: {element -> true},
+						        getComparator: {depth -> },
+						        getPath: {path, element ->
+									path << dateGroup(element['mn:date'].date)
+									path << element
+								 }
+						    ] as Format<?>, id: 'entryTree')
+						
+						entryTable.model = new EventTableModel<?>(entryTree,
+							[
+								getColumnCount: {2},
+								getColumnName: {column -> switch(column) {
+										case 0: return 'Title'
+										case 1: return 'Published Date'
+										default: return null
+									}
+								},
+								getColumnValue: {object, column -> switch(column) {
+									case 0: if (object instanceof String) {
+										return object
+									} else {
+										return object['mn:title'].string
+									}
+									case 1: if (!(object instanceof String)) {
+										return new PrettyTime().format(object['mn:date'].date.time)
+									}
+								}}
+							] as TableFormat)
+
+						// XXX: global..
+						ttsupport = TreeTableSupport.install(entryTable, entryTree, 0)
+					}
 				}
 			}
 			panel(constraints: 'right') {
