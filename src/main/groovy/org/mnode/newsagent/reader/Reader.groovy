@@ -32,6 +32,9 @@
 package org.mnode.newsagent.reader
 
 import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Desktop
+import java.awt.event.MouseEvent
 
 import javax.jcr.NamespaceException
 import javax.jcr.SimpleCredentials
@@ -47,6 +50,8 @@ import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
 import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
+import org.mnode.newsagent.util.HtmlDecoder
+import org.mnode.ousia.DateTableCellRenderer
 import org.mnode.ousia.DialogExceptionHandler
 import org.mnode.ousia.HTMLEditorKitExt
 import org.mnode.ousia.HyperlinkBrowser
@@ -61,8 +66,6 @@ import ca.odell.glazedlists.TreeList.Format
 import ca.odell.glazedlists.gui.TableFormat
 import ca.odell.glazedlists.swing.EventTableModel
 import ca.odell.glazedlists.swing.TreeTableSupport
-
-import com.ocpsoft.pretty.time.PrettyTime
 
 try {
 	new Socket('localhost', 1338)
@@ -200,16 +203,41 @@ ousia.edt {
 									case 0: if (object instanceof String) {
 										return object
 									} else {
-										return object['mn:title'].string
+										return HtmlDecoder.decode(object['mn:title'].string)
 									}
 									case 1: if (!(object instanceof String)) {
-										return new PrettyTime().format(object['mn:date'].date.time)
+										return object['mn:date'].date.time
 									}
 								}}
 							] as TableFormat)
 
+						entryTable.getDefaultRenderer(String).background = Color.WHITE
+						
+						DateTableCellRenderer dateRenderer = [entryTable.getDefaultRenderer(String)]
+						dateRenderer.background = Color.WHITE
+						
+//						ttsupport.delegateRenderer = defaultRenderer
+//						entryTable.columnModel.getColumn(1).cellRenderer = defaultRenderer
+						entryTable.columnModel.getColumn(1).cellRenderer = dateRenderer
+			
 						// XXX: global..
 						ttsupport = TreeTableSupport.install(entryTable, entryTree, 0)
+						
+						entryTable.mouseClicked = { e ->
+							if (e.button == MouseEvent.BUTTON1 && e.clickCount >= 2 && entryTable.selectedRow >= 0) {
+								def selectedItem = entryTree[entryTable.convertRowIndexToModel(entryTable.selectedRow)]
+								// feed item..
+								if (selectedItem.hasProperty('mn:link')) {
+									println selectedItem['mn:link'].string
+									doOutside {
+										Desktop.desktop.browse(URI.create(selectedItem['mn:link'].string))
+//										aggregator.markNodeRead selectedItem.node
+//										activityTable.model.fireTableRowsUpdated activityTable.selectedRow, activityTable.selectedRow
+									}
+								}
+							}
+						}
+
 					}
 				}
 			}
