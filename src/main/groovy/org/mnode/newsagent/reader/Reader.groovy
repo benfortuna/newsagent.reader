@@ -46,10 +46,8 @@ import javax.swing.ListSelectionModel
 import javax.swing.text.html.StyleSheet
 
 import org.apache.jackrabbit.core.jndi.RegistryHelper
-import org.mnode.newsagent.FeedReader
-import org.mnode.newsagent.FeedReaderImpl
-import org.mnode.newsagent.FeedResolverImpl
-import org.mnode.newsagent.jcr.JcrFeedCallback
+import org.mnode.newsagent.OpmlImporterImpl
+import org.mnode.newsagent.jcr.JcrOpmlCallback
 import org.mnode.newsagent.util.HtmlDecoder
 import org.mnode.ousia.DateTableCellRenderer
 import org.mnode.ousia.DialogExceptionHandler
@@ -57,6 +55,7 @@ import org.mnode.ousia.HTMLEditorKitExt
 import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.HyperlinkBrowser.HyperlinkFeedback
+import org.mnode.ousia.flamingo.BreadcrumbContextCallback
 import org.mnode.ousia.glazedlists.DateExpansionModel
 import org.mnode.ousia.layer.StatusLayerUI
 import org.pushingpixels.substance.api.fonts.SubstanceFontUtilities
@@ -112,10 +111,12 @@ try {
 catch (NamespaceException e) {
 	println e.message
 }
-JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions']
-
-FeedReader reader = new FeedReaderImpl()
-reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
+//JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions']
+//
+//FeedReader reader = new FeedReaderImpl()
+//reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
+OpmlImporterImpl importer = []
+importer.importOpml(Reader.class.getResourceAsStream('/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
 
 ousia.edt {
 	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
@@ -125,10 +126,12 @@ ousia.edt {
 	imageIcon(id: 'logo32', '/logo32.png')
 	imageIcon(id: 'logo16', '/logo16.png')
 	
-	frame(title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400],
+	frame(id: 'newsagentFrame', title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400],
 		iconImages: [logo64.image, logo48.image, logo32.image, logo16.image]) {
 		
 		borderLayout()
+		breadcrumbBar(id: 'breadcrumb', constraints: BorderLayout.NORTH, new BreadcrumbContextCallback(rootContext: new RootContext(session.rootNode)), throwsExceptions: false)
+		
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
@@ -222,6 +225,26 @@ ousia.edt {
 			
 						// XXX: global..
 						ttsupport = TreeTableSupport.install(entryTable, entryTree, 0)
+						
+						entryTable.selectionModel.valueChanged = { e ->
+							if (!e.valueIsAdjusting) {
+								def entry
+								if (entryTable.selectedRow >= 0) {
+									entry = entryTree[entryTable.convertRowIndexToModel(entryTable.selectedRow)]
+								}
+								if (entry instanceof javax.jcr.Node) {
+									doLater {
+										contentTitle.text = "<html><strong>${entry['mn:title'].string}</strong><br/>${entry.parent['mn:title'].string} <em>${entry['mn:date'].date.time}</em></html>"
+										feedItemContent.editorKit = defaultEditorKit
+										feedItemContent.text = entry['mn:description'].string
+									}
+								}
+								else {
+									contentTitle.text = null
+									feedItemContent.text = null
+								}
+							}
+						}
 						
 						entryTable.mouseClicked = { e ->
 							if (e.button == MouseEvent.BUTTON1 && e.clickCount >= 2 && entryTable.selectedRow >= 0) {
