@@ -29,22 +29,22 @@ public class RootContext implements BreadcrumbContext {
 		children.add(new AllSubscriptionsContext());
 		
 		try {
-			populateSubscriptions(rootNode, children);
+			populateTags(rootNode.getNode("mn:tags"), children);
 		} catch (RepositoryException e) {
 			throw new ReaderException(e);
 		}
 		return children;
 	}
 
-	private void populateSubscriptions(Node node, List<BreadcrumbContext> subscriptions) throws RepositoryException {
+	private void populateTags(Node node, List<BreadcrumbContext> tags) throws RepositoryException {
 		final NodeIterator nodes = node.getNodes();
 		while (nodes.hasNext()) {
 			final Node childNode = nodes.nextNode();
-			if (childNode.hasProperty("mn:title")) {
-				subscriptions.add(new SubscriptionContext(childNode));
+			if (childNode.hasProperty("mn:label")) {
+				tags.add(new TagContext(childNode));
 			}
 			else {
-				populateSubscriptions(childNode, subscriptions);
+				populateTags(childNode, tags);
 			}
 		}
 	}
