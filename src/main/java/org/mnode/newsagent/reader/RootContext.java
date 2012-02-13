@@ -25,7 +25,7 @@ public class RootContext implements BreadcrumbContext {
 
 	@Override
 	public List<? extends BreadcrumbContext> getChildren() {
-		final List<BreadcrumbContext> children = new ArrayList<>();
+		final List<BreadcrumbContext> children = new ArrayList<BreadcrumbContext>();
 		children.add(new AllSubscriptionsContext());
 		
 		try {
