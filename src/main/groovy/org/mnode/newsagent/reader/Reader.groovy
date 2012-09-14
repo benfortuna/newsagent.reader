@@ -48,6 +48,9 @@ import javax.swing.text.html.StyleSheet
 import org.apache.jackrabbit.core.jndi.RegistryHelper
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrOpmlCallback
+import org.mnode.newsagent.FeedReader
+import org.mnode.newsagent.FeedReaderImpl
+import org.mnode.newsagent.jcr.JcrFeedCallback
 import org.mnode.newsagent.util.HtmlDecoder
 import org.mnode.ousia.DateTableCellRenderer
 import org.mnode.ousia.DialogExceptionHandler
@@ -111,12 +114,26 @@ try {
 catch (NamespaceException e) {
 	println e.message
 }
-//JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions']
+JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloadEnclosures:false]
 //
-//FeedReader reader = new FeedReaderImpl()
+FeedReader reader = new FeedReaderImpl()
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
 importer.importOpml(Reader.class.getResourceAsStream('/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
+
+def updateFeed
+updateFeed = { feedNode ->
+  if (feedNode['mn:link']) {
+    reader.read new URL(feedNode['mn:link'].string), callback
+  }
+  else {
+    feedNode.nodes.each {
+	  updateFeed it
+	}
+  }
+}
+
+updateFeed session.rootNode['mn:subscriptions']
 
 ousia.edt {
 	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
