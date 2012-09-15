@@ -119,7 +119,7 @@ JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloa
 FeedReader reader = new FeedReaderImpl()
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
-importer.importOpml(Reader.class.getResourceAsStream('/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
+//importer.importOpml(Reader.class.getResourceAsStream('/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
 
 def updateFeed
 updateFeed = { feedNode ->
@@ -133,7 +133,7 @@ updateFeed = { feedNode ->
   }
 }
 
-updateFeed session.rootNode['mn:subscriptions']
+//updateFeed session.rootNode['mn:subscriptions']
 
 ousia.edt {
 	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
@@ -156,7 +156,7 @@ ousia.edt {
 	                subscriptionTree.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
 	                subscriptionTree.selectionModel.valueChanged = {
 						def selectedPath = subscriptionTree.getPathForRow(subscriptionTree.selectedRow)
-	                    if (selectedPath) {
+	                    if (selectedPath?.lastPathComponent?.hasProperty('mn:link')) {
 	                        edt {
 //	                            entryTable.model = new FeedEntryTableModel(selectedPath.lastPathComponent)
 								entries.withWriteLock {
