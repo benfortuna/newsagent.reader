@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>mnode-parent</artifactId>
 		<groupId>org.mnode</groupId>
-		<version>1.9</version>
+		<version>1.15</version>
 	</parent>
 	<groupId>org.mnode.newsagent</groupId>
 	<artifactId>newsagent-reader</artifactId>
