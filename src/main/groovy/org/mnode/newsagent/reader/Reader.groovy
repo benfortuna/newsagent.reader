@@ -46,10 +46,11 @@ import javax.swing.ListSelectionModel
 import javax.swing.text.html.StyleSheet
 
 import org.apache.jackrabbit.core.jndi.RegistryHelper
-import org.mnode.newsagent.OpmlImporterImpl
-import org.mnode.newsagent.jcr.JcrOpmlCallback
+import org.jdesktop.swingx.JXTable
+import org.mnode.juicer.query.QueryBuilder
 import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
+import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
 import org.mnode.newsagent.util.HtmlDecoder
 import org.mnode.ousia.DateTableCellRenderer
@@ -152,6 +153,7 @@ ousia.edt {
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
+					/*
 					treeTable(id: 'subscriptionTree', constraints: 'left', treeTableModel: new SubscriptionTreeTableModel(session.rootNode['mn:subscriptions']))
 	                subscriptionTree.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
 	                subscriptionTree.selectionModel.valueChanged = {
@@ -177,6 +179,21 @@ ousia.edt {
 	                    }
 					}
 					subscriptionTree.packAll()
+					*/
+					def query = new QueryBuilder(session.workspace.queryManager).with {
+						query(
+							source: selector(nodeType: 'nt:unstructured', name: 'subscriptions'),
+							constraint: and(
+								constraint1: descendantNode(selectorName: 'subscriptions', path: '/mn:subscriptions'),
+								constraint2: propertyExistence(selectorName: 'subscriptions', propertyName: 'mn:title'))
+						)
+					}
+					def subscriptionNodes = query.execute().nodes.toList()
+					table(new JXTable(), showHorizontalLines: false, autoCreateRowSorter: true, id: 'subscriptionTable', constraints: 'left', model: new SubscriptionTableModel(subscriptionNodes))
+	                subscriptionTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+	                subscriptionTable.selectionModel.valueChanged = {
+						
+					}
 				}
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
 					table(id: 'entryTable', constraints: 'right') {
