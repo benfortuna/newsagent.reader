@@ -751,8 +751,6 @@
             <outline text="Push the Third Button Twice"
                 title="Push the Third Button Twice" type="rss"
                 xmlUrl="http://feeds.feedburner.com/dustrunners" htmlUrl="http://pttbt.ca"/>
-            <outline text="The BileBlog" title="The BileBlog" type="rss"
-                xmlUrl="http://feeds.feedburner.com/bileblog" htmlUrl="http://www.bileblog.org"/>
             <outline text="The Dilbert Blog" title="The Dilbert Blog"
                 type="rss"
                 xmlUrl="http://dilbertblog.typepad.com/the_dilbert_blog/atom.xml" htmlUrl="http://dilbertblog.typepad.com/the_dilbert_blog/"/>
