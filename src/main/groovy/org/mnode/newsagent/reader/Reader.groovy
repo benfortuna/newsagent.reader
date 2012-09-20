@@ -52,6 +52,7 @@ import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
+import org.mnode.newsagent.jcr.JcrOpmlCallback
 import org.mnode.newsagent.util.HtmlDecoder
 import org.mnode.ousia.DateTableCellRenderer
 import org.mnode.ousia.DialogExceptionHandler
@@ -98,7 +99,8 @@ Thread.start {
 	}
 }
 
-File repositoryLocation = [System.getProperty("user.home"), ".newsagent/data"]
+//File repositoryLocation = [System.getProperty("user.home"), ".newsagent/data"]
+File repositoryLocation = ['target/repository']
 
 def context = new InitialContext()
 RegistryHelper.registerRepository(context, 'newsagent', configFile.absolutePath, repositoryLocation.absolutePath, false)
@@ -120,7 +122,7 @@ JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloa
 FeedReader reader = new FeedReaderImpl()
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
-//importer.importOpml(Reader.class.getResourceAsStream('/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
+importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
 
 def updateFeed
 updateFeed = { feedNode ->
@@ -134,7 +136,7 @@ updateFeed = { feedNode ->
   }
 }
 
-//updateFeed session.rootNode['mn:subscriptions']
+updateFeed session.rootNode['mn:subscriptions']
 
 ousia.edt {
 	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
@@ -185,14 +187,36 @@ ousia.edt {
 							source: selector(nodeType: 'nt:unstructured', name: 'subscriptions'),
 							constraint: and(
 								constraint1: descendantNode(selectorName: 'subscriptions', path: '/mn:subscriptions'),
-								constraint2: propertyExistence(selectorName: 'subscriptions', propertyName: 'mn:title'))
+								constraint2: propertyExistence(selectorName: 'subscriptions', propertyName: 'mn:status'))
 						)
 					}
 					def subscriptionNodes = query.execute().nodes.toList()
 					table(new JXTable(), showHorizontalLines: false, autoCreateRowSorter: true, id: 'subscriptionTable', constraints: 'left', model: new SubscriptionTableModel(subscriptionNodes))
 	                subscriptionTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
-	                subscriptionTable.selectionModel.valueChanged = {
-						
+	                subscriptionTable.selectionModel.valueChanged = { e ->
+						if (!e.valueIsAdjusting) {
+							if (subscriptionTable.selectedRow >= 0) {
+								int subscriptionIndex = subscriptionTable.convertRowIndexToModel(subscriptionTable.selectedRow)
+								def subscription = subscriptionNodes[subscriptionIndex]
+								edt {
+	//	                            entryTable.model = new FeedEntryTableModel(subscription)
+									entries.withWriteLock {
+										clear()
+										subscription.nodes.each {
+											add it
+										}
+									}
+								}
+	                        }
+							else {
+								edt {
+	//	                            entryTable.model = new DefaultTableModel()
+									entries.withWriteLock {
+										clear()
+									}
+								}
+							}
+						}
 					}
 				}
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
@@ -271,6 +295,7 @@ ousia.edt {
 										contentTitle.text = "<html><strong>${entry['mn:title'].string}</strong><br/>${entry.parent['mn:title'].string} <em>${entry['mn:date'].date.time}</em></html>"
 										feedItemContent.editorKit = defaultEditorKit
 										feedItemContent.text = entry['mn:description'].string
+										feedItemContent.caretPosition = 0
 									}
 								}
 								else {
