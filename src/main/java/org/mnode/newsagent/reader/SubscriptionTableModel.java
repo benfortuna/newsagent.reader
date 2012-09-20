@@ -58,6 +58,14 @@ public class SubscriptionTableModel extends AbstractTableModel {
 	}
 
 	@Override
+	public Class<?> getColumnClass(int column) {
+		if (column == 1) {
+			return Integer.class;
+		}
+		return String.class;
+	}
+	
+	@Override
 	public String getColumnName(int column) {
 		return COLUMNS[column];
 	}

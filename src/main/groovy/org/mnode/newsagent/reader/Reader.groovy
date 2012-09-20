@@ -193,6 +193,8 @@ ousia.edt {
 					def subscriptionNodes = query.execute().nodes.toList()
 					table(new JXTable(), showHorizontalLines: false, autoCreateRowSorter: true, id: 'subscriptionTable', constraints: 'left', model: new SubscriptionTableModel(subscriptionNodes))
 	                subscriptionTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+					subscriptionTable.setDefaultRenderer(String, new SubscriptionTableCellRenderer(subscriptionNodes))
+
 	                subscriptionTable.selectionModel.valueChanged = { e ->
 						if (!e.valueIsAdjusting) {
 							if (subscriptionTable.selectedRow >= 0) {
@@ -272,6 +274,7 @@ ousia.edt {
 								}}
 							] as TableFormat)
 
+						entryTable.setDefaultRenderer(String, new DefaultNodeTableCellRenderer(entryTree, ['Today', 'Yesterday', 'Older Items']))
 						entryTable.getDefaultRenderer(String).background = Color.WHITE
 						
 						DateTableCellRenderer dateRenderer = [entryTable.getDefaultRenderer(String)]
