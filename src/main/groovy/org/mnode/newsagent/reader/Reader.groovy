@@ -34,6 +34,8 @@ package org.mnode.newsagent.reader
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Desktop
+import java.awt.Font
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
 import javax.jcr.NamespaceException
@@ -50,6 +52,7 @@ import org.jdesktop.swingx.JXTable
 import org.mnode.juicer.query.QueryBuilder
 import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
+import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
 import org.mnode.newsagent.jcr.JcrOpmlCallback
@@ -72,7 +75,7 @@ import ca.odell.glazedlists.swing.EventTableModel
 import ca.odell.glazedlists.swing.TreeTableSupport
 
 try {
-	new Socket('localhost', 1338)
+	new Socket('localhost', 1337)
 	println 'Already running'
 	System.exit(0)
 }
@@ -86,7 +89,7 @@ configFile.text = Reader.getResourceAsStream("/config.xml").text
 def ousia = new OusiaBuilder()
 
 Thread.start {
-	ServerSocket server = [1338]
+	ServerSocket server = [1337]
 	while(true) {
 		try {
 			server.accept {}
@@ -138,6 +141,17 @@ updateFeed = { feedNode ->
 
 updateFeed session.rootNode['mn:subscriptions']
 
+FeedResolverImpl feedResolver = []
+
+def subscriptionQuery = new QueryBuilder(session.workspace.queryManager).with {
+	query(
+		source: selector(nodeType: 'nt:unstructured', name: 'subscriptions'),
+		constraint: and(
+			constraint1: descendantNode(selectorName: 'subscriptions', path: '/mn:subscriptions'),
+			constraint2: propertyExistence(selectorName: 'subscriptions', propertyName: 'mn:status'))
+	)
+}
+
 ousia.edt {
 	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
 	
@@ -146,11 +160,38 @@ ousia.edt {
 	imageIcon(id: 'logo32', '/logo32.png')
 	imageIcon(id: 'logo16', '/logo16.png')
 	
+	actions {
+		action id: 'addSubscriptionAction', name: rs('Add Subscription..'), closure: {
+			def subscriptionText = addSubscriptionField.text
+			addSubscriptionField.text = null
+			doOutside {
+				//Desktop.desktop.browse(URI.create('http://basetools.org/coucou'))
+				def feedUrls = feedResolver.resolve(subscriptionText)
+				if (feedUrls) {
+					reader.read feedUrls[0], callback
+				}
+				
+				doLater {
+					subscriptionTable.model = new SubscriptionTableModel(subscriptionQuery.execute().nodes.toList())
+				}
+			}
+		}
+	}
+	
 	frame(id: 'newsagentFrame', title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400],
 		iconImages: [logo64.image, logo48.image, logo32.image, logo16.image]) {
 		
 		borderLayout()
-		breadcrumbBar(id: 'breadcrumb', constraints: BorderLayout.NORTH, new BreadcrumbContextCallback(rootContext: new RootContext(session.rootNode)), throwsExceptions: false)
+		
+		panel(constraints: BorderLayout.NORTH) {
+			borderLayout()
+			breadcrumbBar(id: 'breadcrumb', new BreadcrumbContextCallback(rootContext: new RootContext(session.rootNode)), throwsExceptions: false)
+			textField(id: 'addSubscriptionField', columns: 14, prompt: addSubscriptionAction.getValue('Name'), promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY,
+						keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}, constraints: BorderLayout.EAST) {
+						
+				addSubscriptionField.addActionListener addSubscriptionAction
+			}
+		}
 		
 		splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
 			splitPane(constraints: 'left', dividerSize: 7) {
@@ -182,15 +223,7 @@ ousia.edt {
 					}
 					subscriptionTree.packAll()
 					*/
-					def query = new QueryBuilder(session.workspace.queryManager).with {
-						query(
-							source: selector(nodeType: 'nt:unstructured', name: 'subscriptions'),
-							constraint: and(
-								constraint1: descendantNode(selectorName: 'subscriptions', path: '/mn:subscriptions'),
-								constraint2: propertyExistence(selectorName: 'subscriptions', propertyName: 'mn:status'))
-						)
-					}
-					def subscriptionNodes = query.execute().nodes.toList()
+					def subscriptionNodes = subscriptionQuery.execute().nodes.toList()
 					table(new JXTable(), showHorizontalLines: false, autoCreateRowSorter: true, id: 'subscriptionTable', constraints: 'left', model: new SubscriptionTableModel(subscriptionNodes))
 	                subscriptionTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
 					subscriptionTable.setDefaultRenderer(String, new SubscriptionTableCellRenderer(subscriptionNodes))
