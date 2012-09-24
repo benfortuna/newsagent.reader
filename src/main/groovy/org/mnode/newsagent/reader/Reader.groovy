@@ -299,7 +299,7 @@ ousia.edt {
 									case 0: if (object instanceof String) {
 										return object
 									} else {
-										return HtmlDecoder.decode(object['mn:title'].string)
+										return HtmlDecoder.decode(object['mn:title'].string).replaceAll(/<(.|\n)*?>/, '')
 									}
 									case 1: if (!(object instanceof String)) {
 										return object['mn:date'].date.time
