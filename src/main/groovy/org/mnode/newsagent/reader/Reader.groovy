@@ -33,6 +33,7 @@ package org.mnode.newsagent.reader
 
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Cursor
 import java.awt.Desktop
 import java.awt.Font
 import java.awt.event.KeyEvent
@@ -358,7 +359,7 @@ ousia.edt {
 											selectedItem['mn:seen'] = true
 										}
 										doLater {
-											activityTable.model.fireTableRowsUpdated activityTable.selectedRow, activityTable.selectedRow
+//											entryTable.model.fireTableRowsUpdated entryTable.selectedRow, entryTable.selectedRow
 											newsagentFrame.contentPane.cursor = Cursor.defaultCursor
 										}
 									}
