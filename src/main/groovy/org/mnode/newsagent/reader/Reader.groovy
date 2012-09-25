@@ -96,7 +96,7 @@ Thread.start {
 		}
 		finally {
 			ousia.doLater {
-				frame.visible = true
+				newsagentFrame.visible = true
 			}
 		}
 	}
@@ -307,18 +307,19 @@ ousia.edt {
 								}}
 							] as TableFormat)
 
-						entryTable.setDefaultRenderer(String, new DefaultNodeTableCellRenderer(entryTree, ['Today', 'Yesterday', 'Older Items']))
-						entryTable.getDefaultRenderer(String).background = Color.WHITE
+						DefaultNodeTableCellRenderer defaultRenderer = [entryTree, ['Today', 'Yesterday', 'Older Items']]
+						defaultRenderer.background = Color.WHITE
+						entryTable.setDefaultRenderer(String, defaultRenderer)
 						
-						DateTableCellRenderer dateRenderer = [entryTable.getDefaultRenderer(String)]
+						DateTableCellRenderer dateRenderer = [defaultRenderer]
 						dateRenderer.background = Color.WHITE
-						
-//						ttsupport.delegateRenderer = defaultRenderer
-//						entryTable.columnModel.getColumn(1).cellRenderer = defaultRenderer
-						entryTable.columnModel.getColumn(1).cellRenderer = dateRenderer
 			
 						// XXX: global..
 						ttsupport = TreeTableSupport.install(entryTable, entryTree, 0)
+						
+						ttsupport.delegateRenderer = defaultRenderer
+						entryTable.columnModel.getColumn(1).cellRenderer = defaultRenderer
+						entryTable.columnModel.getColumn(1).cellRenderer = dateRenderer
 						
 						entryTable.selectionModel.valueChanged = { e ->
 							if (!e.valueIsAdjusting) {
@@ -343,6 +344,9 @@ ousia.edt {
 						
 						entryTable.mouseClicked = { e ->
 							if (e.button == MouseEvent.BUTTON1 && e.clickCount >= 2 && entryTable.selectedRow >= 0) {
+								doLater {
+									newsagentFrame.contentPane.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+								}
 								def selectedItem = entryTree[entryTable.convertRowIndexToModel(entryTable.selectedRow)]
 								// feed item..
 								if (selectedItem.hasProperty('mn:link')) {
@@ -350,7 +354,13 @@ ousia.edt {
 									doOutside {
 										Desktop.desktop.browse(URI.create(selectedItem['mn:link'].string))
 //										aggregator.markNodeRead selectedItem.node
-//										activityTable.model.fireTableRowsUpdated activityTable.selectedRow, activityTable.selectedRow
+										selectedItem.session.save {
+											selectedItem['mn:seen'] = true
+										}
+										doLater {
+											activityTable.model.fireTableRowsUpdated activityTable.selectedRow, activityTable.selectedRow
+											newsagentFrame.contentPane.cursor = Cursor.defaultCursor
+										}
 									}
 								}
 							}

@@ -62,11 +62,11 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
     private final Color defaultBackground;
     
 //    private final Node parent;
-    private final TreeList<Map<String, ?>> items;
+    private final TreeList<Node> items;
     
     private final List<String> groupNames;
     
-    public DefaultNodeTableCellRenderer(TreeList<Map<String, ?>> items, List<String> groupNames) {
+    public DefaultNodeTableCellRenderer(TreeList<Node> items, List<String> groupNames) {
         defaultFont = getFont();
         unreadFont = getFont().deriveFont(Font.BOLD);
         defaultForeground = Color.BLACK;
@@ -98,8 +98,8 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
 //                NodeIterator nodes = parent.getNodes();
 //                nodes.skip(table.convertRowIndexToModel(row));
 //                Node node = nodes.nextNode();
-        		Node node = (Node) items.get(table.convertRowIndexToModel(row)).get("node");
-                if (node.hasProperty("seen") && !node.getProperty("seen").getBoolean()) {
+        		Node node = (Node) items.get(table.convertRowIndexToModel(row));
+                if (node.hasProperty("mn:seen") && !node.getProperty("mn:seen").getBoolean()) {
                     setFont(unreadFont);
                 }
                 else if (node.hasProperty("flags") && !hasPropertyValue(node.getProperty("flags").getValues(), "seen")) {
