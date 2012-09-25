@@ -125,7 +125,7 @@ JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloa
 FeedReader reader = new FeedReaderImpl()
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
-importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
+//importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
 
 def updateFeed
 updateFeed = { feedNode ->
@@ -138,8 +138,6 @@ updateFeed = { feedNode ->
 	}
   }
 }
-
-updateFeed session.rootNode['mn:subscriptions']
 
 FeedResolverImpl feedResolver = []
 
@@ -241,6 +239,7 @@ ousia.edt {
 											add it
 										}
 									}
+									newsagentFrame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
 								}
 	                        }
 							else {
@@ -249,6 +248,7 @@ ousia.edt {
 									entries.withWriteLock {
 										clear()
 									}
+									newsagentFrame.title = rs('Newsagent Reader')
 								}
 							}
 						}
@@ -393,4 +393,8 @@ ousia.edt {
 	}
 		
 	Thread.defaultUncaughtExceptionHandler = new DialogExceptionHandler()
+	
+	doOutside {
+		updateFeed session.rootNode['mn:subscriptions']
+	}
 }
