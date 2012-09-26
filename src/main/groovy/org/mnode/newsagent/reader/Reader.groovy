@@ -48,6 +48,12 @@ import javax.swing.JSplitPane
 import javax.swing.ListSelectionModel
 import javax.swing.text.html.StyleSheet
 
+//import groovyx.javafx.SceneGraphBuilder
+import javafx.application.Platform
+import javafx.embed.swing.JFXPanel
+import javafx.scene.Scene
+import javafx.scene.web.WebView
+
 import org.apache.jackrabbit.core.jndi.RegistryHelper
 import org.jdesktop.swingx.JXTable
 import org.mnode.juicer.query.QueryBuilder
@@ -88,6 +94,7 @@ def configFile = new File(System.getProperty("user.home"), ".newsagent/config.xm
 configFile.text = Reader.getResourceAsStream("/config.xml").text
 
 def ousia = new OusiaBuilder()
+//def sg = new SceneGraphBuilder()
 
 Thread.start {
 	ServerSocket server = [1337]
@@ -331,14 +338,20 @@ ousia.edt {
 								if (entry instanceof javax.jcr.Node) {
 									doLater {
 										contentTitle.text = "<html><strong>${entry['mn:title'].string}</strong><br/>${entry.parent['mn:title'].string} <em>${entry['mn:date'].date.time}</em></html>"
+										/*
 										feedItemContent.editorKit = defaultEditorKit
 										feedItemContent.text = entry['mn:description'].string
 										feedItemContent.caretPosition = 0
+										*/
+										Platform.runLater {
+											//view.engine.load(entry['mn:link'].string)
+											view.engine.loadContent(entry['mn:description'].string)
+										}
 									}
 								}
 								else {
 									contentTitle.text = null
-									feedItemContent.text = null
+									//feedItemContent.text = null
 								}
 							}
 						}
@@ -377,6 +390,7 @@ ousia.edt {
 					borderLayout()
 					def statusLayer = new StatusLayerUI()
 					layer(statusLayer) {
+						/*
 						scrollPane {
 							def styleSheet = new StyleSheet()
 							styleSheet.addRule('body {background-color:#ffffff; color:#444b56; font-family:verdana,sans-serif; margin:8px; }')
@@ -386,6 +400,13 @@ ousia.edt {
 									show: { uri -> statusLayer.showStatusMessage uri.toString() },
 									hide: { statusLayer.hideStatusMessage() }
 								] as HyperlinkFeedback))
+						}
+						*/
+						container(new JFXPanel(), id: 'jfxPanel') {
+							Platform.runLater {
+								view = new WebView()
+								jfxPanel.scene = new Scene(view)
+							}
 						}
 					}
 				}
