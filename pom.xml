@@ -274,10 +274,10 @@
 			<groupId>com.javafx</groupId>
 			<artifactId>jfxrt</artifactId>
 			<version>2.2</version>
-			!--
+			<!-
 			<scope>system</scope>
 			<systemPath>C:/Temp/jfxrt.jar</systemPath>
-			--
+			->
 		</dependency>
     -->
 	</dependencies>
