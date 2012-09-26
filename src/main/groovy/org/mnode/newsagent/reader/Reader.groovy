@@ -176,6 +176,9 @@ ousia.edt {
 				if (feedUrls) {
 					reader.read feedUrls[0], callback
 				}
+				else {
+					reader.read subscriptionText, callback
+				}
 				
 				doLater {
 					subscriptionTable.model = new SubscriptionTableModel(subscriptionQuery.execute().nodes.toList())
@@ -263,7 +266,7 @@ ousia.edt {
 					}
 				}
 				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-					table(id: 'entryTable', constraints: 'right') {
+					table(id: 'entryTable', constraints: 'right', gridColor: Color.LIGHT_GRAY) {
 						
 						def dateGroup = { date ->
 							def today = Calendar.instance
