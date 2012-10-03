@@ -46,6 +46,7 @@ import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.ListSelectionModel
+import javax.swing.table.DefaultTableModel
 import javax.swing.text.html.StyleSheet
 
 //import groovyx.javafx.SceneGraphBuilder
@@ -170,18 +171,19 @@ ousia.edt {
 		action id: 'addSubscriptionAction', name: rs('Add Subscription..'), closure: {
 			def subscriptionText = addSubscriptionField.text
 			addSubscriptionField.text = null
+			//subscriptionTable.model = new DefaultTableModel()
 			doOutside {
+				try {
 				//Desktop.desktop.browse(URI.create('http://basetools.org/coucou'))
-				def feedUrls = feedResolver.resolve(subscriptionText)
-				if (feedUrls) {
+					def feedUrls = feedResolver.resolve(subscriptionText)
 					reader.read feedUrls[0], callback
-				}
-				else {
+				} catch (def e) {
 					reader.read subscriptionText, callback
-				}
-				
-				doLater {
-					subscriptionTable.model = new SubscriptionTableModel(subscriptionQuery.execute().nodes.toList())
+				} finally {
+					subscriptionNode = subscriptionQuery.execute().nodes.toList()
+					doLater {
+						subscriptionTable.model = new SubscriptionTableModel(subscriptionNodes)
+					}
 				}
 			}
 		}
@@ -232,7 +234,7 @@ ousia.edt {
 					}
 					subscriptionTree.packAll()
 					*/
-					def subscriptionNodes = subscriptionQuery.execute().nodes.toList()
+					subscriptionNodes = subscriptionQuery.execute().nodes.toList()
 					table(new JXTable(), showHorizontalLines: false, autoCreateRowSorter: true, id: 'subscriptionTable', constraints: 'left', model: new SubscriptionTableModel(subscriptionNodes))
 	                subscriptionTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
 					subscriptionTable.setDefaultRenderer(String, new SubscriptionTableCellRenderer(subscriptionNodes))
