@@ -37,7 +37,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.List;
-import java.util.Map;
 
 import javax.jcr.Node;
 import javax.swing.JTable;
@@ -69,7 +68,8 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
     public DefaultNodeTableCellRenderer(TreeList<Node> items, List<String> groupNames) {
         defaultFont = getFont();
         unreadFont = getFont().deriveFont(Font.BOLD);
-        defaultForeground = Color.BLACK;
+//        defaultForeground = Color.BLACK;
+        defaultForeground = new Color(0, 0, 0, 192);
         nonItemForeground = Color.LIGHT_GRAY;
         flaggedBackground = new Color(255, 255, 0, 32);
         defaultBackground = Color.WHITE;

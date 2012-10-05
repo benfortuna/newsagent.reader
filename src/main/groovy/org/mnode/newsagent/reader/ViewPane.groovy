@@ -44,7 +44,7 @@ class ViewPane extends JXPanel {
     
 //    def parent
     
-	ViewPane(Session session, def swing = new OusiaBuilder()) {
+	ViewPane(Session session, def actionContext, def swing = new OusiaBuilder()) {
 //        this.parent = parent
         this.session = session
 //		layout = swing.cardLayout(new SlidingCardLayout(), id: 'slider')
@@ -59,7 +59,8 @@ class ViewPane extends JXPanel {
             )
         }
         
-        add swing.panel {
+        add swing.build {
+            panel {
             borderLayout()
             splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
     			splitPane(constraints: 'left', dividerSize: 7, continuousLayout: true, oneTouchExpandable: true) {
@@ -128,6 +129,8 @@ class ViewPane extends JXPanel {
     				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
     					table(id: 'entryTable', constraints: 'right', gridColor: Color.LIGHT_GRAY) {
     						
+                            actionContext.entryTable = entryTable
+                            
     						def dateGroup = { date ->
     							def today = Calendar.instance
     							today.clearTime()
@@ -277,6 +280,7 @@ class ViewPane extends JXPanel {
     			}
             }
 		}
+        }
 //        add swing.button(text: 'Click Me')
 	}
 	

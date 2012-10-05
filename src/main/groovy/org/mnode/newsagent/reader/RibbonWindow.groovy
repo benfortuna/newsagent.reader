@@ -136,7 +136,22 @@ class RibbonWindow extends JRibbonFrame {
 				ribbonBand('Group By', id: 'groupByBand', resizePolicies: ['mirror']),
 				ribbonBand('Sort By', id: 'sortBand', resizePolicies: ['mirror']),
 				ribbonBand('Filter', id: 'filterBand', resizePolicies: ['mirror']),
-				ribbonBand('Show/Hide', id: 'showHideBand', resizePolicies: ['mirror']),
+				ribbonBand('Show/Hide', id: 'showHideBand', resizePolicies: ['mirror']) {
+                    ribbonComponent(
+                        component: commandToggleButton(id: 'toggleTableHeader', rs('Table Header'),
+                             actionPerformed: { e->
+                                 if (e.source.actionModel.selected) {
+                                     actionContext.entryTable.tableHeader.visible = true
+                                     actionContext.entryTable.tableHeader.preferredSize = null
+                                 }
+                                 else {
+                                     actionContext.entryTable.tableHeader.visible = false
+                                     actionContext.entryTable.tableHeader.preferredSize = [-1, 0]
+                                 }
+                             } as ActionListener),
+                        priority: RibbonElementPriority.TOP
+                    )
+				},
 			])
 		}
 		
@@ -155,7 +170,7 @@ class RibbonWindow extends JRibbonFrame {
         add swing.panel {
             borderLayout()
             //panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
-            panel(new ViewPane(session), id: 'contentPane1')
+            panel(new ViewPane(session, actionContext), id: 'contentPane1')
         }
 	}
 }
