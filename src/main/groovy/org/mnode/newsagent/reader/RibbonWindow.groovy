@@ -23,7 +23,7 @@ class RibbonWindow extends JRibbonFrame {
 
     def actionContext = [] as ObservableMap
     
-	RibbonWindow(def swing = new OusiaBuilder()) {
+	RibbonWindow(def session, def swing = new OusiaBuilder()) {
 		swing.build {
 			actions {
 				action id: 'newAction', name: rs('New Item'), accelerator: shortcut('N'), closure: {
@@ -47,8 +47,8 @@ class RibbonWindow extends JRibbonFrame {
 		
 		ribbon.applicationMenu = swing.build {
 //			def newIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/add.png'), [16, 16] as Dimension)
-			def newIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/add.png'), [16, 16] as Dimension)
-			def exitIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/exit.png'), [16, 16] as Dimension)
+			def newIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/add.png'), [16, 16] as Dimension)
+			def exitIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/exit.png'), [16, 16] as Dimension)
 			def blankIcon = new EmptyResizableIcon(16)
 			
 			ribbonApplicationMenu(id: 'appMenu') {
@@ -74,11 +74,11 @@ class RibbonWindow extends JRibbonFrame {
 		StarSvgIcon helpIcon = []
 		ribbon.configureHelp helpIcon, swing.aboutAction
         
-        def taskIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/task.png'), [16, 16] as Dimension)
-        def previousIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/task.png'), [16, 16] as Dimension)
-        def nextIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/task.png'), [16, 16] as Dimension)
-        def refreshIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/task.png'), [16, 16] as Dimension)
-        def cancelLoadIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/task.png'), [16, 16] as Dimension)
+        def taskIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
+        def previousIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
+        def nextIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
+        def refreshIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
+        def cancelLoadIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
         
 		ribbon.addTask swing.build {
 			ribbonTask('Home', bands: [
@@ -155,7 +155,7 @@ class RibbonWindow extends JRibbonFrame {
         add swing.panel {
             borderLayout()
             //panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
-            panel(new ViewPane(), id: 'contentPane1')
+            panel(new ViewPane(session), id: 'contentPane1')
         }
 	}
 }

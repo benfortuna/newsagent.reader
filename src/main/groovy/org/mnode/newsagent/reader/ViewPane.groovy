@@ -11,10 +11,11 @@ import javafx.embed.swing.JFXPanel
 import javafx.scene.Scene
 import javafx.scene.web.WebView
 
-import javax.jcr.Session;
+import javax.jcr.Session
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.ListSelectionModel
+import javax.swing.SwingUtilities
 
 import org.jdesktop.swingx.JXPanel
 import org.jdesktop.swingx.JXTable
@@ -37,11 +38,18 @@ class ViewPane extends JXPanel {
 	
     def subscriptionNodes
     
+    def ttsupport
+    
+    def entries
+    
+//    def parent
+    
 	ViewPane(Session session, def swing = new OusiaBuilder()) {
+//        this.parent = parent
         this.session = session
 //		layout = swing.cardLayout(new SlidingCardLayout(), id: 'slider')
         layout = swing.borderLayout()
-        
+
         def subscriptionQuery = new QueryBuilder(session.workspace.queryManager).with {
             query(
                 source: selector(nodeType: 'nt:unstructured', name: 'subscriptions'),
@@ -51,8 +59,9 @@ class ViewPane extends JXPanel {
             )
         }
         
-//        add swing.build {
-            add swing.splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
+        add swing.panel {
+            borderLayout()
+            splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
     			splitPane(constraints: 'left', dividerSize: 7, continuousLayout: true, oneTouchExpandable: true) {
     				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
     					/*
@@ -89,6 +98,7 @@ class ViewPane extends JXPanel {
     
     	                subscriptionTable.selectionModel.valueChanged = { e ->
     						if (!e.valueIsAdjusting) {
+                                def frame = SwingUtilities.getWindowAncestor(subscriptionTable)
     							if (subscriptionTable.selectedRow >= 0) {
     								int subscriptionIndex = subscriptionTable.convertRowIndexToModel(subscriptionTable.selectedRow)
     								def subscription = subscriptionNodes[subscriptionIndex]
@@ -100,7 +110,7 @@ class ViewPane extends JXPanel {
     											add it
     										}
     									}
-    									newsagentFrame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+    									frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
     								}
     	                        }
     							else {
@@ -109,7 +119,7 @@ class ViewPane extends JXPanel {
     									entries.withWriteLock {
     										clear()
     									}
-    									newsagentFrame.title = rs('Newsagent Reader')
+    									frame.title = rs('Newsagent Reader')
     								}
     							}
     						}
@@ -211,8 +221,9 @@ class ViewPane extends JXPanel {
     						
     						entryTable.mouseClicked = { e ->
     							if (e.button == MouseEvent.BUTTON1 && e.clickCount >= 2 && entryTable.selectedRow >= 0) {
+                                    def frame = SwingUtilities.getWindowAncestor(e.source)
     								doLater {
-    									newsagentFrame.contentPane.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+    									frame.contentPane.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
     								}
     								def selectedItem = entryTree[entryTable.convertRowIndexToModel(entryTable.selectedRow)]
     								// feed item..
@@ -226,7 +237,7 @@ class ViewPane extends JXPanel {
     										}
     										doLater {
     //											entryTable.model.fireTableRowsUpdated entryTable.selectedRow, entryTable.selectedRow
-    											newsagentFrame.contentPane.cursor = Cursor.defaultCursor
+    											frame.contentPane.cursor = Cursor.defaultCursor
     										}
     									}
     								}
@@ -265,7 +276,8 @@ class ViewPane extends JXPanel {
     				}
     			}
             }
-//		}
+		}
+//        add swing.button(text: 'Click Me')
 	}
 	
 	void show(String viewId) {

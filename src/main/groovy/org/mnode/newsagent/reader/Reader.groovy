@@ -31,57 +31,22 @@
  */
 package org.mnode.newsagent.reader
 
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Cursor
-import java.awt.Desktop
-import java.awt.Font
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
-
 import javax.jcr.NamespaceException
-import javax.jcr.Session;
+import javax.jcr.Session
 import javax.jcr.SimpleCredentials
 import javax.naming.InitialContext
 import javax.swing.JFrame
-import javax.swing.JScrollPane
-import javax.swing.JSplitPane
-import javax.swing.ListSelectionModel
-import javax.swing.table.DefaultTableModel
-import javax.swing.text.html.StyleSheet
-
-//import groovyx.javafx.SceneGraphBuilder
-import javafx.application.Platform
-import javafx.embed.swing.JFXPanel
-import javafx.scene.Scene
-import javafx.scene.web.WebView
 
 import org.apache.jackrabbit.core.jndi.RegistryHelper
-import org.jdesktop.swingx.JXTable
-import org.mnode.juicer.query.QueryBuilder
 import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
 import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
-import org.mnode.newsagent.jcr.JcrOpmlCallback
-import org.mnode.newsagent.util.HtmlDecoder
-import org.mnode.ousia.DateTableCellRenderer
 import org.mnode.ousia.DialogExceptionHandler
-import org.mnode.ousia.HTMLEditorKitExt
-import org.mnode.ousia.HyperlinkBrowser
 import org.mnode.ousia.OusiaBuilder
-import org.mnode.ousia.HyperlinkBrowser.HyperlinkFeedback
-import org.mnode.ousia.flamingo.BreadcrumbContextCallback
-import org.mnode.ousia.glazedlists.DateExpansionModel
-import org.mnode.ousia.layer.StatusLayerUI
+import org.mnode.ousia.flamingo.icons.LogoSvgIcon
 import org.pushingpixels.substance.api.fonts.SubstanceFontUtilities
-
-import ca.odell.glazedlists.BasicEventList
-import ca.odell.glazedlists.TreeList.Format
-import ca.odell.glazedlists.gui.TableFormat
-import ca.odell.glazedlists.swing.EventTableModel
-import ca.odell.glazedlists.swing.TreeTableSupport
 
 try {
 	new Socket('localhost', 1337)
@@ -154,10 +119,19 @@ FeedResolverImpl feedResolver = []
 ousia.edt {
 	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
 	
+    def frameIconImages = [
+        imageIcon('/logo64.png').image,
+        imageIcon('/logo48.png').image,
+        imageIcon('/logo32.png').image,
+        imageIcon('/logo16.png').image
+    ]
+    /*
 	imageIcon(id: 'logo64', '/logo64.png')
 	imageIcon(id: 'logo48', '/logo48.png')
 	imageIcon(id: 'logo32', '/logo32.png')
 	imageIcon(id: 'logo16', '/logo16.png')
+	*/
+    def applicationIcon = new LogoSvgIcon()
 	
 	actions {
 		action id: 'addSubscriptionAction', name: rs('Add Subscription..'), closure: {
@@ -196,11 +170,9 @@ ousia.edt {
 			 }
 		}
 	}
-	
+/*	
 	ribbonFrame(id: 'newsagentFrame', title: rs('Newsagent Reader'), show: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, locationRelativeTo: null, trackingEnabled: true, size: [600, 400],
 		iconImages: [logo64.image, logo48.image, logo32.image, logo16.image]) {
-        
-        Thread.defaultUncaughtExceptionHandler = new DialogExceptionHandler(dialogOwner: newsagentFrame)
         
 		borderLayout()
 		
@@ -214,10 +186,15 @@ ousia.edt {
 				addSubscriptionField.addActionListener addSubscriptionAction
 			}
 		}
-        
-        panel(new ViewPane(session, ousia))
+        panel(new ViewPane(session))
 	}
-	
+*/
+    frame(new RibbonWindow(session, ousia), id: 'newsagentFrame', title: 'Newsagent Reader', size: [640, 400], locationRelativeTo: null,
+        visible: true, defaultCloseOperation: JFrame.EXIT_ON_CLOSE, iconImages: frameIconImages,
+        applicationIcon: applicationIcon, trackingEnabled: true)
+          
+    Thread.defaultUncaughtExceptionHandler = new DialogExceptionHandler(dialogOwner: newsagentFrame)
+
 	doOutside {
 		updateFeed session.rootNode['mn:subscriptions']
 	}
