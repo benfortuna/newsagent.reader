@@ -117,7 +117,8 @@ updateFeed = { feedNode ->
 FeedResolverImpl feedResolver = []
 
 ousia.edt {
-	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
+//	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
+	lookAndFeel('substance-mariner')
 	
     def frameIconImages = [
         imageIcon('/logo64.png').image,
