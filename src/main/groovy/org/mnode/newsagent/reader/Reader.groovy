@@ -43,10 +43,11 @@ import org.mnode.newsagent.FeedReaderImpl
 import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
+import org.mnode.newsagent.jcr.JcrOpmlCallback
+import org.mnode.newsagent.util.FeedFetcherCacheImpl
 import org.mnode.ousia.DialogExceptionHandler
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.flamingo.icons.LogoSvgIcon
-import org.pushingpixels.substance.api.fonts.SubstanceFontUtilities
 
 try {
 	new Socket('localhost', 1337)
@@ -97,10 +98,10 @@ catch (NamespaceException e) {
 }
 JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloadEnclosures:false]
 //
-FeedReader reader = new FeedReaderImpl()
+FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
-//importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
+importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
 
 def updateFeed
 updateFeed = { feedNode ->
