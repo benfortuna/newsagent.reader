@@ -31,8 +31,14 @@
  */
 package org.mnode.newsagent.reader;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jcr.Node;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+
+import org.mnode.ousia.flamingo.BreadcrumbContext;
 
 public class TagContext extends AbstractNodeContext {
 	
@@ -49,4 +55,23 @@ public class TagContext extends AbstractNodeContext {
 		}
 	}
 
+	@Override
+	public List<? extends BreadcrumbContext> getChildren() {
+	    try {
+            final List<BreadcrumbContext> children = new ArrayList<BreadcrumbContext>();
+            final PropertyIterator references = getNode().getReferences();
+            while (references.hasNext()) {
+                children.add(new SubscriptionContext(references.nextProperty().getParent()));
+            }
+    	    return children;
+	    }
+	    catch (RepositoryException re) {
+	        throw new ReaderException(re);
+	    }
+	}
+	
+	@Override
+	public boolean isLeaf() {
+	    return false;
+	}
 }

@@ -56,15 +56,19 @@ public class RootContext implements BreadcrumbContext {
 
 	@Override
 	public List<? extends BreadcrumbContext> getChildren() {
-		final List<BreadcrumbContext> children = new ArrayList<BreadcrumbContext>();
-		children.add(new AllSubscriptionsContext());
-		
-		try {
-			populateTags(rootNode.getNode("mn:tags"), children);
-		} catch (RepositoryException e) {
-			throw new ReaderException(e);
-		}
-		return children;
+	    try {
+    		final List<BreadcrumbContext> children = new ArrayList<BreadcrumbContext>();
+    		children.add(new AllSubscriptionsContext(rootNode.getSession()));
+    		
+    		try {
+    			populateTags(rootNode.getNode("mn:tags"), children);
+    		} catch (RepositoryException e) {
+    			throw new ReaderException(e);
+    		}
+    		return children;
+	    } catch (RepositoryException re) {
+	        throw new ReaderException(re);
+	    }
 	}
 
 	private void populateTags(Node node, List<BreadcrumbContext> tags) throws RepositoryException {

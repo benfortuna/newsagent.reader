@@ -31,15 +31,26 @@
  */
 package org.mnode.newsagent.reader;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.InvalidQueryException;
+import javax.jcr.query.Query;
 import javax.swing.Icon;
 
 import org.mnode.ousia.flamingo.BreadcrumbContext;
 
-public class AllSubscriptionsContext implements BreadcrumbContext {
+public class AllSubscriptionsContext extends AbstractQueryContext {
 
+    private static final String QUERY = "SELECT * FROM [nt:unstructured] AS subscriptions WHERE ISDESCENDANTNODE(subscriptions, [/mn:subscriptions]) AND subscriptions.[mn:status] IS NOT NULL";
+    
+    public AllSubscriptionsContext(Session session) throws InvalidQueryException, RepositoryException {
+        super(session.getWorkspace().getQueryManager().createQuery(QUERY, Query.JCR_SQL2));
+    }
+    
 	@Override
 	public String getName() {
 		return "All Subscriptions";
@@ -47,7 +58,16 @@ public class AllSubscriptionsContext implements BreadcrumbContext {
 
 	@Override
 	public List<BreadcrumbContext> getChildren() {
-		return Collections.emptyList();
+	    try {
+            final List<BreadcrumbContext> children = new ArrayList<BreadcrumbContext>();
+            final NodeIterator result = getQuery().execute().getNodes();
+            while (result.hasNext()) {
+                children.add(new SubscriptionContext(result.nextNode()));
+            }
+            return children;
+	    } catch (RepositoryException re) {
+	        throw new ReaderException(re);
+	    }
 	}
 
 	@Override
