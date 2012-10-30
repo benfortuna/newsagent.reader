@@ -285,7 +285,7 @@ class ViewPane extends JXPanel {
 	}
 	
     void loadEntries(javax.jcr.Node subscription, Frame frame) {
-        swing.edt {
+        swing.doLater {
             entries.withWriteLock {
                 clear()
                 subscription.nodes.each {
@@ -293,6 +293,7 @@ class ViewPane extends JXPanel {
                 }
             }
             frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+            entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
         }
     }
     
