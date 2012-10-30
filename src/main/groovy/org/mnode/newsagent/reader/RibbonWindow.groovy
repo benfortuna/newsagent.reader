@@ -44,6 +44,7 @@ import org.mnode.ousia.flamingo.icons.PowerSvgIcon
 import org.mnode.ousia.flamingo.icons.PreviousSvgIcon
 import org.mnode.ousia.flamingo.icons.ReloadSvgIcon;
 import org.mnode.ousia.flamingo.icons.StarSvgIcon
+import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener;
 import org.pushingpixels.flamingo.api.common.JCommandButton.CommandButtonKind
 import org.pushingpixels.flamingo.api.common.icon.EmptyResizableIcon
 import org.pushingpixels.flamingo.api.common.icon.ImageWrapperResizableIcon
@@ -179,7 +180,7 @@ class RibbonWindow extends JRibbonFrame {
                                      actionContext.entryTable.tableHeader.visible = false
                                      actionContext.entryTable.tableHeader.preferredSize = [-1, 0]
                                  }
-                             } as ActionListener),
+                             } as ActionListener) {toggleTableHeader.actionModel.selected = true}, 
                         priority: RibbonElementPriority.TOP
                     )
 				},
@@ -197,11 +198,21 @@ class RibbonWindow extends JRibbonFrame {
 				ribbonBand('Action1', id: 'action1Band', resizePolicies: ['mirror']),
 			])
 		}
+        
+        ribbon.minimized = true
 		
         add swing.panel {
             borderLayout()
             //panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
-            panel(new NavigationPane(session), constraints: BorderLayout.NORTH)
+            panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
+                navigationPane.addBreadcrumbListener({ e ->
+                    edt {
+                        if (e.source.items[-1].data.class == SubscriptionContext) {
+                            contentPane1.loadEntries(e.source.items[-1].data.node, this)
+                        }
+                    }
+                } as BreadcrumbPathListener)
+            }
             panel(new ViewPane(session, actionContext), id: 'contentPane1')
         }
 	}

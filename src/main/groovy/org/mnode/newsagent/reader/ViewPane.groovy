@@ -35,6 +35,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Desktop
+import java.awt.Frame;
 import java.awt.event.MouseEvent
 
 import javafx.application.Platform
@@ -74,9 +75,11 @@ class ViewPane extends JXPanel {
     def entries
     
 //    def parent
+    def swing
     
 	ViewPane(Session session, def actionContext, def swing = new OusiaBuilder()) {
 //        this.parent = parent
+        this.swing = swing
         this.session = session
 //		layout = swing.cardLayout(new SlidingCardLayout(), id: 'slider')
         layout = swing.borderLayout()
@@ -95,35 +98,9 @@ class ViewPane extends JXPanel {
             panel {
             borderLayout()
             splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
+                /*
     			splitPane(constraints: 'left', dividerSize: 7, continuousLayout: true, oneTouchExpandable: true) {
     				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-    					/*
-    					treeTable(id: 'subscriptionTree', constraints: 'left', treeTableModel: new SubscriptionTreeTableModel(session.rootNode['mn:subscriptions']))
-    	                subscriptionTree.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
-    	                subscriptionTree.selectionModel.valueChanged = {
-    						def selectedPath = subscriptionTree.getPathForRow(subscriptionTree.selectedRow)
-    	                    if (selectedPath?.lastPathComponent?.hasProperty('mn:link')) {
-    	                        edt {
-    //	                            entryTable.model = new FeedEntryTableModel(selectedPath.lastPathComponent)
-    								entries.withWriteLock {
-    									clear()
-    									selectedPath.lastPathComponent.nodes.each {
-    										add it
-    									}
-    								}
-    	                        }
-    	                    }
-    	                    else {
-    	                        edt {
-    //	                            entryTable.model = new DefaultTableModel()
-    								entries.withWriteLock {
-    									clear()
-    								}
-    	                        }
-    	                    }
-    					}
-    					subscriptionTree.packAll()
-    					*/
     					subscriptionNodes = subscriptionQuery.execute().nodes.toList()
     					table(new JXTable(), showHorizontalLines: false, autoCreateRowSorter: true, id: 'subscriptionTable', constraints: 'left', model: new SubscriptionTableModel(subscriptionNodes))
     	                subscriptionTable.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -135,20 +112,10 @@ class ViewPane extends JXPanel {
     							if (subscriptionTable.selectedRow >= 0) {
     								int subscriptionIndex = subscriptionTable.convertRowIndexToModel(subscriptionTable.selectedRow)
     								def subscription = subscriptionNodes[subscriptionIndex]
-    								edt {
-    	//	                            entryTable.model = new FeedEntryTableModel(subscription)
-    									entries.withWriteLock {
-    										clear()
-    										subscription.nodes.each {
-    											add it
-    										}
-    									}
-    									frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
-    								}
+                                    loadEntries(subscription, frame)
     	                        }
     							else {
     								edt {
-    	//	                            entryTable.model = new DefaultTableModel()
     									entries.withWriteLock {
     										clear()
     									}
@@ -158,6 +125,7 @@ class ViewPane extends JXPanel {
     						}
     					}
     				}
+    				*/
     				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
     					table(id: 'entryTable', constraints: 'right', gridColor: Color.LIGHT_GRAY) {
     						
@@ -281,7 +249,7 @@ class ViewPane extends JXPanel {
     
     					}
     				}
-    			}
+//    			}
     			panel(constraints: 'right') {
     				borderLayout()
     				label(constraints: BorderLayout.NORTH, border: emptyBorder(5), id: 'contentTitle')
@@ -316,6 +284,18 @@ class ViewPane extends JXPanel {
 //        add swing.button(text: 'Click Me')
 	}
 	
+    void loadEntries(javax.jcr.Node subscription, Frame frame) {
+        swing.edt {
+            entries.withWriteLock {
+                clear()
+                subscription.nodes.each {
+                    add it
+                }
+            }
+            frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+        }
+    }
+    
 	void show(String viewId) {
 		layout.show(this, viewId)
 	}

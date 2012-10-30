@@ -36,6 +36,7 @@ import java.awt.BorderLayout
 import org.jdesktop.swingx.JXPanel
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.flamingo.BreadcrumbContextCallback
+import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener;
 
 class NavigationPane extends JXPanel {
     
@@ -44,5 +45,9 @@ class NavigationPane extends JXPanel {
     NavigationPane(def session) {
         layout = swing.borderLayout()
         add swing.breadcrumbBar(id: 'breadcrumb', new BreadcrumbContextCallback(rootContext: new RootContext(session.rootNode)), throwsExceptions: false, constraints: BorderLayout.WEST)
+    }
+    
+    void addBreadcrumbListener(BreadcrumbPathListener listener) {
+        swing.breadcrumb.model.addPathListener listener
     }
 }
