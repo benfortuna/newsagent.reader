@@ -43,7 +43,13 @@ public class SubscriptionContext extends AbstractNodeContext {
 	@Override
 	public String getName() {
 		try {
-			return String.format("%s (%s)", getNode().getProperty("mn:title").getString(), getNode().getNodes().getSize());
+		    final long childCount = getNode().getNodes().getSize();
+		    if (childCount > 0) {
+		        return String.format("%s (%s)", getNode().getProperty("mn:title").getString(), childCount);
+		    }
+		    else {
+		        return getNode().getProperty("mn:title").getString();
+		    }
 		} catch (RepositoryException e) {
 			throw new ReaderException(e);
 		}
