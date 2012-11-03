@@ -37,14 +37,15 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
+import java.lang.invoke.MethodHandleImpl.BindCaller.T
 
 import org.mnode.ousia.OusiaBuilder
-import org.mnode.ousia.flamingo.icons.NextSvgIcon;
+import org.mnode.ousia.flamingo.icons.NextSvgIcon
 import org.mnode.ousia.flamingo.icons.PowerSvgIcon
 import org.mnode.ousia.flamingo.icons.PreviousSvgIcon
-import org.mnode.ousia.flamingo.icons.ReloadSvgIcon;
+import org.mnode.ousia.flamingo.icons.ReloadSvgIcon
 import org.mnode.ousia.flamingo.icons.StarSvgIcon
-import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener;
+import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener
 import org.pushingpixels.flamingo.api.common.JCommandButton.CommandButtonKind
 import org.pushingpixels.flamingo.api.common.icon.EmptyResizableIcon
 import org.pushingpixels.flamingo.api.common.icon.ImageWrapperResizableIcon
@@ -56,6 +57,7 @@ class RibbonWindow extends JRibbonFrame {
     def actionContext = [] as ObservableMap
     
 	RibbonWindow(def session, def swing = new OusiaBuilder()) {
+	
 		swing.build {
 			actions {
 				action id: 'newAction', name: rs('New Item'), accelerator: shortcut('N'), closure: {
@@ -77,6 +79,21 @@ class RibbonWindow extends JRibbonFrame {
 			}
 		}
 		
+		add swing.panel {
+			borderLayout()
+			//panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
+			panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
+				navigationPane.addBreadcrumbListener({ e ->
+					edt {
+						if (e.source.items[-1].data.class == SubscriptionContext) {
+							contentPane1.loadEntries(e.source.items[-1].data.node, this)
+						}
+					}
+				} as BreadcrumbPathListener)
+			}
+			panel(new ViewPane(session, actionContext), id: 'contentPane1')
+		}
+
 		ribbon.applicationMenu = swing.build {
 //			def newIcon = ImageWrapperResizableIcon.getIcon(Main.getResource('/add.png'), [16, 16] as Dimension)
 			def newIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/add.png'), [16, 16] as Dimension)
@@ -165,9 +182,50 @@ class RibbonWindow extends JRibbonFrame {
 		
 		ribbon.addTask swing.build {
 			ribbonTask('View', bands: [
-				ribbonBand('Group By', id: 'groupByBand', resizePolicies: ['mirror']),
-				ribbonBand('Sort By', id: 'sortBand', resizePolicies: ['mirror']),
-				ribbonBand('Filter', id: 'filterBand', resizePolicies: ['mirror']),
+				ribbonBand(rs('Group By'), icon: taskIcon, id: 'groupByBand', resizePolicies: ['mirror']) {
+					ribbonComponent([
+						component: comboBox(items: [rs('Date'), rs('Source')] as Object[], editable: false, itemStateChanged: { e->
+							contentPane1.groupEntries(e.source.selectedItem)
+						}),
+						rowSpan: 1
+					])
+				},
+			
+				ribbonBand(rs('Sort By'), icon: taskIcon, id: 'sortBand', resizePolicies: ['mirror']) {
+					ribbonComponent([
+						component: comboBox(items: contentPane1.sortComparators.keySet() as Object[], editable: false, itemStateChanged: { e->
+							doLater {
+								selectedSort = e.source.selectedItem
+								sortedActivities.comparator = contentPane1.sortComparators[selectedSort]
+							}
+						}),
+						rowSpan: 1
+					])
+		//			commandButton(rs('Sort Order'), commandButtonKind: CommandButtonKind.POPUP_ONLY, popupOrientationKind: CommandButtonPopupOrientationKind.SIDEWARD, popupCallback: {
+		//				commandPopupMenu() {
+		//					commandToggleMenuButton(rs('Ascending'))
+		//					commandToggleMenuButton(rs('Descending'))
+		//				}
+		//			} as PopupPanelCallback)
+				},
+/*	
+				ribbonBand(rs('Filter'), icon: taskIcon, id: 'filterBand', resizePolicies: ['mirror']) {
+					ribbonComponent(
+						component: textField(columns: 14, prompt: rs('Type To Filter..'), promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY, id: 'filterTextField', keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}),
+						rowSpan: 1
+					) {
+						filterTextField.addBuddy commandButton(clearIcon, actionPerformed: {filterTextField.text = null} as ActionListener), BuddySupport.Position.RIGHT
+					}
+					ribbonComponent(
+						component: checkBox(text: rs('Unread Items'), id: 'unreadFilterCheckbox'),
+						rowSpan: 1
+					)
+					ribbonComponent(
+						component: checkBox(text: rs('Important Items'), id: 'importantFilterCheckbox'),
+						rowSpan: 1
+					)
+				},*/
+		
 				ribbonBand('Show/Hide', id: 'showHideBand', resizePolicies: ['mirror']) {
                     ribbonComponent(
                         component: commandToggleButton(id: 'toggleTableHeader', rs('Table Header'),
@@ -200,20 +258,5 @@ class RibbonWindow extends JRibbonFrame {
 		}
         
         ribbon.minimized = true
-		
-        add swing.panel {
-            borderLayout()
-            //panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
-            panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
-                navigationPane.addBreadcrumbListener({ e ->
-                    edt {
-                        if (e.source.items[-1].data.class == SubscriptionContext) {
-                            contentPane1.loadEntries(e.source.items[-1].data.node, this)
-                        }
-                    }
-                } as BreadcrumbPathListener)
-            }
-            panel(new ViewPane(session, actionContext), id: 'contentPane1')
-        }
 	}
 }

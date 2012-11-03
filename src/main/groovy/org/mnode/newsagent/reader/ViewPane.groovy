@@ -59,6 +59,7 @@ import org.mnode.ousia.glazedlists.DateExpansionModel
 import org.mnode.ousia.layer.StatusLayerUI
 
 import ca.odell.glazedlists.BasicEventList
+import ca.odell.glazedlists.TreeList;
 import ca.odell.glazedlists.TreeList.Format
 import ca.odell.glazedlists.gui.TableFormat
 import ca.odell.glazedlists.swing.EventTableModel
@@ -76,7 +77,81 @@ class ViewPane extends JXPanel {
     
 //    def parent
     def swing
-    
+	
+	def dateGroup = { date ->
+		def today = Calendar.instance
+		today.clearTime()
+		def yesterday = Calendar.instance
+		yesterday.add Calendar.DAY_OF_YEAR, -1
+		yesterday.clearTime()
+		if (date?.time < yesterday.time) {
+			return 'Older Items'
+		}
+		else if (date?.time < today.time) {
+			return 'Yesterday'
+		}
+		else {
+			return 'Today'
+		}
+	}
+
+	def dateGroupComparator = {a, b ->
+		def groups = ['Today', 'Yesterday', 'Older Items']
+		groups.indexOf(a) - groups.indexOf(b)
+	} as Comparator
+	
+	def groupComparators = [
+		'Date': {a, b -> dateGroupComparator.compare(dateGroup(a.date), dateGroup(b.date))} as Comparator,
+		'Source': {a, b -> a.source <=> b.source} as Comparator
+	]
+	
+	def selectedGroup = 'Date'
+	def selectedSort = swing.rs('Date')
+	
+	def sortComparators = [
+		'Date': {a, b ->
+			int groupSort = groupComparators[selectedGroup].compare(a, b)
+			(groupSort != 0) ? groupSort : b.date <=> a.date
+		} as Comparator,
+	
+		'Title': {a, b ->
+			int groupSort = groupComparators[selectedGroup].compare(a, b)
+			groupSort = (groupSort != 0) ? groupSort : a.title <=> b.title
+			(groupSort != 0) ? groupSort : b.date <=> a.date
+		} as Comparator,
+	
+		'Source': {a, b ->
+			int groupSort = groupComparators[selectedGroup].compare(a, b)
+			groupSort = (groupSort != 0) ? groupSort : b.source <=> a.source
+			(groupSort != 0) ? groupSort : b.date <=> a.date
+		} as Comparator
+	]
+
+	def buildActivityTableModel = {
+		swing.build {
+			new EventTableModel<?>(entryTree,
+				[
+					getColumnCount: {2},
+					getColumnName: {column -> switch(column) {
+							case 0: return 'Title'
+							case 1: return 'Published Date'
+							default: return null
+						}
+					},
+					getColumnValue: {object, column -> switch(column) {
+						case 0: if (object instanceof String) {
+							return object
+						} else {
+							return HtmlDecoder.decode(object['mn:title'].string).replaceAll(/<(.|\n)*?>/, '')
+						}
+						case 1: if (!(object instanceof String)) {
+							return object['mn:date'].date.time
+						}
+					}}
+				] as TableFormat)
+		}
+	}
+	
 	ViewPane(Session session, def actionContext, def swing = new OusiaBuilder()) {
 //        this.parent = parent
         this.swing = swing
@@ -130,27 +205,10 @@ class ViewPane extends JXPanel {
     					table(id: 'entryTable', constraints: 'right', gridColor: Color.LIGHT_GRAY) {
     						
                             actionContext.entryTable = entryTable
-                            
-    						def dateGroup = { date ->
-    							def today = Calendar.instance
-    							today.clearTime()
-    							def yesterday = Calendar.instance
-    							yesterday.add Calendar.DAY_OF_YEAR, -1
-    							yesterday.clearTime()
-    							if (date.time < yesterday.time) {
-    								return 'Older Items'
-    							}
-    							else if (date.time < today.time) {
-    								return 'Yesterday'
-    							}
-    							else {
-    								return 'Today'
-    							}
-    						}
-    						
+
     						// XXX: global..
     						entries = new BasicEventList()
-    						treeList(filterList(sortedList(entries, comparator: { b, a -> a['mn:date'].date.time <=> b['mn:date'].date.time } as Comparator<?>)),
+    						treeList(filterList(sortedList(entries, comparator: sortComparators[selectedSort], id: 'sortedEntries')),
     							 expansionModel: new DateExpansionModel(), format: [
     						        allowsChildren: {element -> true},
     						        getComparator: {depth -> },
@@ -160,26 +218,7 @@ class ViewPane extends JXPanel {
     								 }
     						    ] as Format<?>, id: 'entryTree')
     						
-    						entryTable.model = new EventTableModel<?>(entryTree,
-    							[
-    								getColumnCount: {2},
-    								getColumnName: {column -> switch(column) {
-    										case 0: return 'Title'
-    										case 1: return 'Published Date'
-    										default: return null
-    									}
-    								},
-    								getColumnValue: {object, column -> switch(column) {
-    									case 0: if (object instanceof String) {
-    										return object
-    									} else {
-    										return HtmlDecoder.decode(object['mn:title'].string).replaceAll(/<(.|\n)*?>/, '')
-    									}
-    									case 1: if (!(object instanceof String)) {
-    										return object['mn:date'].date.time
-    									}
-    								}}
-    							] as TableFormat)
+    						entryTable.model = buildActivityTableModel()
     
     						DefaultNodeTableCellRenderer defaultRenderer = [entryTree, ['Today', 'Yesterday', 'Older Items']]
     						defaultRenderer.background = Color.WHITE
@@ -297,6 +336,60 @@ class ViewPane extends JXPanel {
         }
     }
     
+	void groupEntries(def selectedGroup) {
+		swing.doLater {
+			sortedEntries.comparator = sortComparators[selectedSort]
+			
+			if (selectedGroup == rs('Source')) {
+				treeList(sortedEntries,
+					 expansionModel: TreeList.NODES_START_COLLAPSED, format: [
+						allowsChildren: {element -> true},
+						getComparator: {depth -> },
+						getPath: {path, element ->
+							path << element.parent.name
+							path << element
+						 }
+					] as Format<?>, id: 'entryTree')
+				
+				entryTable.model = buildActivityTableModel()
+			}
+			else {
+				treeList(filterList(sortedList(entries, comparator: sortComparators[selectedSort], id: 'sortedEntries')),
+					 expansionModel: new DateExpansionModel(), format: [
+				        allowsChildren: {element -> true},
+				        getComparator: {depth -> },
+				        getPath: {path, element ->
+							path << dateGroup(element['mn:date'].date)
+							path << element
+						 }
+				    ] as Format<?>, id: 'entryTree')
+				
+				entryTable.model = buildActivityTableModel()
+			}
+			
+			ttsupport.uninstall()
+			ttsupport = TreeTableSupport.install(entryTable, entryTree, 0)
+			ttsupport.arrowKeyExpansionEnabled = true
+			ttsupport.delegateRenderer.background = Color.WHITE
+			
+			DefaultNodeTableCellRenderer defaultRenderer = [entryTree, []]
+			defaultRenderer.background = Color.WHITE
+			
+			DateTableCellRenderer dateRenderer = [defaultRenderer]
+			dateRenderer.background = Color.WHITE
+			
+			ttsupport.delegateRenderer = defaultRenderer
+//			entryTable.columnModel.getColumn(1).cellRenderer = defaultRenderer
+			entryTable.columnModel.getColumn(1).cellRenderer = dateRenderer
+			
+		}
+
+	}
+	
+	void sortEntries() {
+		
+	}
+	
 	void show(String viewId) {
 		layout.show(this, viewId)
 	}
