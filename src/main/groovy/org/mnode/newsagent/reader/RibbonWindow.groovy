@@ -256,6 +256,13 @@ class RibbonWindow extends JRibbonFrame {
 						if (e.source.items[-1].data.class == SubscriptionContext) {
 							contentPane1.loadEntries(e.source.items[-1].data.node, this)
 						}
+						else if (e.source.items[-1].data.class == TagContext) {
+							def subscriptionNodes = []
+							e.source.items[-1].data.children.each {
+								subscriptionNodes << it.node
+							}
+							contentPane1.loadEntries(e.source.items[-1].data.name, subscriptionNodes, this)
+						}
 					}
 				} as BreadcrumbPathListener)
 			}

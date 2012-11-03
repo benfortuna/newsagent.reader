@@ -311,7 +311,22 @@ class ViewPane extends JXPanel {
             entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
         }
     }
-    
+	
+	void loadEntries(String tag, def subscriptions, Frame frame) {
+		swing.doLater {
+			entries.withWriteLock {
+				clear()
+				subscriptions.each { subscription ->
+					subscription.nodes.each {
+						add it
+					}
+				}
+			}
+			frame.title = "$tag - ${rs('Newsagent Reader')}"
+			entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
+		}
+	}
+
 	void groupEntries(def selectedGroup) {
 		gas.selectedGroup = selectedGroup
 		swing.doLater {
