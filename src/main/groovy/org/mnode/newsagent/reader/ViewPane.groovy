@@ -35,7 +35,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Desktop
-import java.awt.Frame;
+import java.awt.Frame
 import java.awt.event.MouseEvent
 
 import javafx.application.Platform
@@ -46,12 +46,12 @@ import javafx.scene.web.WebView
 import javax.jcr.Session
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
-import javax.swing.ListSelectionModel
 import javax.swing.SwingUtilities
 
 import org.jdesktop.swingx.JXPanel
-import org.jdesktop.swingx.JXTable
 import org.mnode.juicer.query.QueryBuilder
+import org.mnode.newsagent.reader.util.Filters
+import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.newsagent.util.HtmlDecoder
 import org.mnode.ousia.DateTableCellRenderer
 import org.mnode.ousia.OusiaBuilder
@@ -59,9 +59,11 @@ import org.mnode.ousia.glazedlists.DateExpansionModel
 import org.mnode.ousia.layer.StatusLayerUI
 
 import ca.odell.glazedlists.BasicEventList
-import ca.odell.glazedlists.TreeList;
+import ca.odell.glazedlists.TreeList
 import ca.odell.glazedlists.TreeList.Format
+import ca.odell.glazedlists.event.ListEventListener
 import ca.odell.glazedlists.gui.TableFormat
+import ca.odell.glazedlists.matchers.CompositeMatcherEditor
 import ca.odell.glazedlists.swing.EventTableModel
 import ca.odell.glazedlists.swing.TreeTableSupport
 
@@ -77,56 +79,9 @@ class ViewPane extends JXPanel {
     
 //    def parent
     def swing
-	
-	def dateGroup = { date ->
-		def today = Calendar.instance
-		today.clearTime()
-		def yesterday = Calendar.instance
-		yesterday.add Calendar.DAY_OF_YEAR, -1
-		yesterday.clearTime()
-		if (date?.time < yesterday.time) {
-			return 'Older Items'
-		}
-		else if (date?.time < today.time) {
-			return 'Yesterday'
-		}
-		else {
-			return 'Today'
-		}
-	}
 
-	def dateGroupComparator = {a, b ->
-		def groups = ['Today', 'Yesterday', 'Older Items']
-		groups.indexOf(a) - groups.indexOf(b)
-	} as Comparator
+	GroupAndSort gas
 	
-	def groupComparators = [
-		'Date': {a, b -> dateGroupComparator.compare(dateGroup(a.date), dateGroup(b.date))} as Comparator,
-		'Source': {a, b -> a.source <=> b.source} as Comparator
-	]
-	
-	def selectedGroup = 'Date'
-	def selectedSort = swing.rs('Date')
-	
-	def sortComparators = [
-		'Date': {a, b ->
-			int groupSort = groupComparators[selectedGroup].compare(a, b)
-			(groupSort != 0) ? groupSort : b.date <=> a.date
-		} as Comparator,
-	
-		'Title': {a, b ->
-			int groupSort = groupComparators[selectedGroup].compare(a, b)
-			groupSort = (groupSort != 0) ? groupSort : a.title <=> b.title
-			(groupSort != 0) ? groupSort : b.date <=> a.date
-		} as Comparator,
-	
-		'Source': {a, b ->
-			int groupSort = groupComparators[selectedGroup].compare(a, b)
-			groupSort = (groupSort != 0) ? groupSort : b.source <=> a.source
-			(groupSort != 0) ? groupSort : b.date <=> a.date
-		} as Comparator
-	]
-
 	def buildActivityTableModel = {
 		swing.build {
 			new EventTableModel<?>(entryTree,
@@ -152,9 +107,10 @@ class ViewPane extends JXPanel {
 		}
 	}
 	
-	ViewPane(Session session, def actionContext, def swing = new OusiaBuilder()) {
+	ViewPane(Session session, def actionContext, GroupAndSort gas, Filters filters, def swing = new OusiaBuilder()) {
 //        this.parent = parent
         this.swing = swing
+		this.gas = gas
         this.session = session
 //		layout = swing.cardLayout(new SlidingCardLayout(), id: 'slider')
         layout = swing.borderLayout()
@@ -202,18 +158,38 @@ class ViewPane extends JXPanel {
     				}
     				*/
     				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-    					table(id: 'entryTable', constraints: 'right', gridColor: Color.LIGHT_GRAY) {
+    					table(id: 'entryTable', constraints: 'right', gridColor: Color.LIGHT_GRAY, showHorizontalLines: false) {
     						
                             actionContext.entryTable = entryTable
+							
+							CompositeMatcherEditor filterMatcherEditor = [filters.filters]
+							filterMatcherEditor.mode = CompositeMatcherEditor.AND
+							
+							// XXX: global..
+							entries = new BasicEventList()
 
-    						// XXX: global..
-    						entries = new BasicEventList()
-    						treeList(filterList(sortedList(entries, comparator: sortComparators[selectedSort], id: 'sortedEntries')),
+							filterList(entries, id: 'filteredEntries', matcherEditor: filterMatcherEditor)
+							
+							filteredEntries.addListEventListener({
+									doLater {
+											entryTable.clearSelection()
+											/*
+											if (filteredEntries.size() > 0) {
+													statusMessage.text = "${filteredActivities.size()} ${rs('items')}"
+											}
+											else {
+													statusMessage.text = rs('Nothing to see here')
+											}
+											*/
+									}
+							} as ListEventListener)
+							
+    						treeList(sortedList(filteredEntries, comparator: gas.sortComparators['Date'], id: 'sortedEntries'),
     							 expansionModel: new DateExpansionModel(), format: [
     						        allowsChildren: {element -> true},
     						        getComparator: {depth -> },
     						        getPath: {path, element ->
-    									path << dateGroup(element['mn:date'].date)
+    									path << gas.dateGroup(element['mn:date'].date)
     									path << element
     								 }
     						    ] as Format<?>, id: 'entryTree')
@@ -337,8 +313,9 @@ class ViewPane extends JXPanel {
     }
     
 	void groupEntries(def selectedGroup) {
+		gas.selectedGroup = selectedGroup
 		swing.doLater {
-			sortedEntries.comparator = sortComparators[selectedSort]
+			sortedEntries.comparator = gas.sortComparators[gas.selectedSort]
 			
 			if (selectedGroup == rs('Source')) {
 				treeList(sortedEntries,
@@ -346,7 +323,7 @@ class ViewPane extends JXPanel {
 						allowsChildren: {element -> true},
 						getComparator: {depth -> },
 						getPath: {path, element ->
-							path << element.parent.name
+							path << element.parent['mn:title'].string
 							path << element
 						 }
 					] as Format<?>, id: 'entryTree')
@@ -354,12 +331,12 @@ class ViewPane extends JXPanel {
 				entryTable.model = buildActivityTableModel()
 			}
 			else {
-				treeList(filterList(sortedList(entries, comparator: sortComparators[selectedSort], id: 'sortedEntries')),
+				treeList(filterList(sortedList(entries, comparator: gas.sortComparators[gas.selectedSort], id: 'sortedEntries')),
 					 expansionModel: new DateExpansionModel(), format: [
 				        allowsChildren: {element -> true},
 				        getComparator: {depth -> },
 				        getPath: {path, element ->
-							path << dateGroup(element['mn:date'].date)
+							path << gas.dateGroup(element['mn:date'].date)
 							path << element
 						 }
 				    ] as Format<?>, id: 'entryTree')
@@ -386,8 +363,12 @@ class ViewPane extends JXPanel {
 
 	}
 	
-	void sortEntries() {
-		
+	void sortEntries(def selectedSort) {
+		gas.selectedSort = selectedSort
+		swing.doLater {
+//			selectedSort = e.source.selectedItem
+			sortedEntries.comparator = gas.sortComparators[selectedSort]
+		}
 	}
 	
 	void show(String viewId) {

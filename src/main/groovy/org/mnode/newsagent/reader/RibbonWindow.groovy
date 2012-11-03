@@ -39,6 +39,9 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.lang.invoke.MethodHandleImpl.BindCaller.T
 
+import org.jdesktop.swingx.prompt.BuddySupport
+import org.mnode.newsagent.reader.util.Filters;
+import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.flamingo.icons.NextSvgIcon
 import org.mnode.ousia.flamingo.icons.PowerSvgIcon
@@ -56,6 +59,8 @@ class RibbonWindow extends JRibbonFrame {
 
     def actionContext = [] as ObservableMap
     
+	GroupAndSort gas = []
+	
 	RibbonWindow(def session, def swing = new OusiaBuilder()) {
 	
 		swing.build {
@@ -77,21 +82,6 @@ class RibbonWindow extends JRibbonFrame {
                 action id: 'refreshAction', name: rs('Refresh'), closure: {
                 }
 			}
-		}
-		
-		add swing.panel {
-			borderLayout()
-			//panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
-			panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
-				navigationPane.addBreadcrumbListener({ e ->
-					edt {
-						if (e.source.items[-1].data.class == SubscriptionContext) {
-							contentPane1.loadEntries(e.source.items[-1].data.node, this)
-						}
-					}
-				} as BreadcrumbPathListener)
-			}
-			panel(new ViewPane(session, actionContext), id: 'contentPane1')
 		}
 
 		ribbon.applicationMenu = swing.build {
@@ -128,6 +118,7 @@ class RibbonWindow extends JRibbonFrame {
         def nextIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
         def refreshIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
         def cancelLoadIcon = ImageWrapperResizableIcon.getIcon(RibbonWindow.getResource('/task.png'), [16, 16] as Dimension)
+		StarSvgIcon clearIcon = [] 
         
 		ribbon.addTask swing.build {
 			ribbonTask('Home', bands: [
@@ -193,11 +184,8 @@ class RibbonWindow extends JRibbonFrame {
 			
 				ribbonBand(rs('Sort By'), icon: taskIcon, id: 'sortBand', resizePolicies: ['mirror']) {
 					ribbonComponent([
-						component: comboBox(items: contentPane1.sortComparators.keySet() as Object[], editable: false, itemStateChanged: { e->
-							doLater {
-								selectedSort = e.source.selectedItem
-								sortedActivities.comparator = contentPane1.sortComparators[selectedSort]
-							}
+						component: comboBox(items: gas.sortComparators.keySet() as Object[], editable: false, itemStateChanged: { e->
+							contentPane1.sortEntries(e.source.selectedItem)
 						}),
 						rowSpan: 1
 					])
@@ -208,7 +196,7 @@ class RibbonWindow extends JRibbonFrame {
 		//				}
 		//			} as PopupPanelCallback)
 				},
-/*	
+
 				ribbonBand(rs('Filter'), icon: taskIcon, id: 'filterBand', resizePolicies: ['mirror']) {
 					ribbonComponent(
 						component: textField(columns: 14, prompt: rs('Type To Filter..'), promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY, id: 'filterTextField', keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}),
@@ -224,7 +212,7 @@ class RibbonWindow extends JRibbonFrame {
 						component: checkBox(text: rs('Important Items'), id: 'importantFilterCheckbox'),
 						rowSpan: 1
 					)
-				},*/
+				},
 		
 				ribbonBand('Show/Hide', id: 'showHideBand', resizePolicies: ['mirror']) {
                     ribbonComponent(
@@ -258,5 +246,20 @@ class RibbonWindow extends JRibbonFrame {
 		}
         
         ribbon.minimized = true
+		
+		add swing.panel {
+			borderLayout()
+			//panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
+			panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
+				navigationPane.addBreadcrumbListener({ e ->
+					edt {
+						if (e.source.items[-1].data.class == SubscriptionContext) {
+							contentPane1.loadEntries(e.source.items[-1].data.node, this)
+						}
+					}
+				} as BreadcrumbPathListener)
+			}
+			panel(new ViewPane(session, actionContext, gas, new Filters(swing)), id: 'contentPane1')
+		}
 	}
 }
