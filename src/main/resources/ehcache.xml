@@ -303,6 +303,8 @@
 
     <cache name="org.mnode.newsagent.reader.feedCache" maxElementsInMemory="10000" eternal="false" diskPersistent="true" timeToLiveSeconds="86400"/>
 
+    <cache name="org.mnode.newsagent.reader.iconCache" maxElementsInMemory="10000" eternal="false" diskPersistent="true" timeToLiveSeconds="86400"/>
+
     <!--
     Mandatory Default Cache configuration. These settings will be applied to caches
     created programmtically using CacheManager.add(String cacheName)

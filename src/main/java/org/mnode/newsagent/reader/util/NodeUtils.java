@@ -29,41 +29,69 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.mnode.newsagent.reader;
+package org.mnode.newsagent.reader.util;
 
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
-import org.mnode.newsagent.reader.util.NodeUtils;
-import org.mnode.ousia.flamingo.BreadcrumbContext;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Ehcache;
+import net.sf.ehcache.Element;
 
-public abstract class AbstractNodeContext implements BreadcrumbContext {
+import org.jdesktop.swingx.icon.EmptyIcon;
+import org.mnode.newsagent.reader.ReaderException;
 
-	private final Node node;
+public final class NodeUtils {
+
+	private static final EmptyIcon DEFAULT_ICON = new EmptyIcon(16, 16);
 	
-	public AbstractNodeContext(Node node) {
-		this.node = node;
+	private static final CacheManager CACHE_MANAGER = CacheManager.newInstance();
+	
+	/**
+	 * Private constructor to enforce singleton.
+	 */
+	private NodeUtils() {
 	}
-
-	@Override
-	public List<? extends BreadcrumbContext> getChildren() {
-		return Collections.emptyList();
+	
+	public static Icon getIcon(Node node) {
+		Icon nodeIcon = null;
+		Element iconElement = null;
+		try {
+			iconElement = getCache().get(node.getIdentifier());
+		}
+		catch (RepositoryException re) {
+			throw new ReaderException(re);
+		}
+		if (iconElement != null) {
+			nodeIcon = (Icon) iconElement.getValue();
+		}
+		else {
+			try {
+				if (node.hasProperty("mn:icon")) {
+					final Binary icon = node.getProperty("mn:icon").getBinary();
+					final byte[] imageData = new byte[(int) icon.getSize()];
+					icon.read(imageData, 0);
+					nodeIcon = new ImageIcon(imageData);
+					getCache().put(new Element(node.getIdentifier(), nodeIcon));
+				}
+				else {
+					nodeIcon = DEFAULT_ICON;
+				}
+			} catch (RepositoryException e) {
+				throw new ReaderException(e);
+			} catch (IOException e) {
+				throw new ReaderException(e);
+			}
+		}
+		return nodeIcon;
 	}
-
-	@Override
-	public boolean isLeaf() {
-		return true;
-	}
-
-	@Override
-	public final Icon getIcon() {
-		return NodeUtils.getIcon(node);
-	}
-
-	public Node getNode() {
-		return node;
-	}
+	
+    private static Ehcache getCache() {
+        return CACHE_MANAGER.getEhcache("org.mnode.newsagent.reader.iconCache");
+    }
 }

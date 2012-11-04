@@ -42,6 +42,8 @@ import javax.jcr.Node;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import org.mnode.newsagent.reader.util.NodeUtils;
+
 import ca.odell.glazedlists.TreeList;
 
 /**
@@ -92,6 +94,7 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
 //        	if (Arrays.asList("Today", "Yesterday", "Older Items").contains(value)) {
         	if (column == 0 && groupNames.contains(value)) {
         		setForeground(nonItemForeground);
+        		setIcon(null);
         	}
         	else {
 //              Node node = ((AbstractNodeTableModel) table.getModel()).getNodeAt(table.convertRowIndexToModel(row));
@@ -108,6 +111,12 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
                 
                 if (!isSelected && node.hasProperty("flagged") && node.getProperty("flagged").getBoolean()) {
                 	setBackground(flaggedBackground);
+                }
+                if (column == 0) {
+                	setIcon(NodeUtils.getIcon(node.getParent()));
+                }
+                else {
+                	setIcon(null);
                 }
         	}
         }
