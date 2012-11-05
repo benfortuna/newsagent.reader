@@ -299,7 +299,7 @@ class ViewPane extends JXPanel {
 //        add swing.button(text: 'Click Me')
 	}
 	
-    void loadEntries(javax.jcr.Node subscription, Frame frame) {
+    void loadEntries(javax.jcr.Node subscription) {
         swing.doLater {
             entries.withWriteLock {
                 clear()
@@ -307,12 +307,12 @@ class ViewPane extends JXPanel {
                     add it
                 }
             }
-            frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+//            frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
             entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
         }
     }
 	
-	void loadEntries(String tag, def subscriptions, Frame frame) {
+	void loadEntries(String tag, def subscriptions) {
 		swing.doLater {
 			entries.withWriteLock {
 				clear()
@@ -322,7 +322,7 @@ class ViewPane extends JXPanel {
 					}
 				}
 			}
-			frame.title = "$tag - ${rs('Newsagent Reader')}"
+//			frame.title = "$tag - ${rs('Newsagent Reader')}"
 			entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
 		}
 	}
@@ -346,7 +346,7 @@ class ViewPane extends JXPanel {
 				entryTable.model = buildActivityTableModel()
 			}
 			else {
-				treeList(filterList(sortedList(entries, comparator: gas.sortComparators[gas.selectedSort], id: 'sortedEntries')),
+				treeList(sortedEntries,
 					 expansionModel: new DateExpansionModel(), format: [
 				        allowsChildren: {element -> true},
 				        getComparator: {depth -> },

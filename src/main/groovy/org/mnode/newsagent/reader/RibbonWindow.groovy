@@ -33,13 +33,15 @@ package org.mnode.newsagent.reader
 
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 
 import org.jdesktop.swingx.prompt.BuddySupport
-import org.mnode.newsagent.reader.util.Filters;
+import org.mnode.juicer.query.QueryBuilder
+import org.mnode.newsagent.reader.util.Filters
 import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.flamingo.icons.NextSvgIcon
@@ -47,6 +49,7 @@ import org.mnode.ousia.flamingo.icons.PowerSvgIcon
 import org.mnode.ousia.flamingo.icons.PreviousSvgIcon
 import org.mnode.ousia.flamingo.icons.ReloadSvgIcon
 import org.mnode.ousia.flamingo.icons.StarSvgIcon
+import org.pushingpixels.flamingo.api.bcb.BreadcrumbItem
 import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener
 import org.pushingpixels.flamingo.api.common.JCommandButton.CommandButtonKind
 import org.pushingpixels.flamingo.api.common.icon.EmptyResizableIcon
@@ -62,6 +65,8 @@ class RibbonWindow extends JRibbonFrame {
 	
 	RibbonWindow(def session, def swing = new OusiaBuilder()) {
 	
+        StarSvgIcon searchIcon = []
+        
 		swing.build {
 			actions {
 				action id: 'newAction', name: rs('New Item'), accelerator: shortcut('N'), closure: {
@@ -79,6 +84,22 @@ class RibbonWindow extends JRibbonFrame {
                     contentPane1.show('preferences')
 				}
                 action id: 'refreshAction', name: rs('Refresh'), closure: {
+                }
+                
+                action id: 'quickSearchAction', name: rs('Search Items'), closure: {
+                    if (quickSearchField.text) {
+                        def searchQuery = new QueryBuilder(session.workspace.queryManager, session.valueFactory).with {
+                            query(
+                                source: selector(nodeType: 'nt:unstructured', name: 'items'),
+                                constraint: and(
+                                    constraint1: descendantNode(selectorName: 'items', path: navigationPane.currentContext.node.path),
+                                    constraint2: fullTextSearch(selectorName: 'items', propertyName: 'mn:description', searchTerms: quickSearchField.text)
+                                )
+                            )
+                        }
+                        SearchContext pr = [searchQuery, quickSearchField.text]
+                        navigationPane.addBreadcrumbContext pr
+                    }
                 }
 			}
 		}
@@ -152,8 +173,8 @@ class RibbonWindow extends JRibbonFrame {
 						component: textField(id: 'quickSearchField', columns: 14, enabled: false, prompt: 'Search..', promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY,
 							keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}) {
 							
-	//                        quickSearchField.addActionListener quickSearchAction
-	//                        quickSearchField.addBuddy commandButton(searchIcon, enabled: false, actionPerformed: quickSearchAction, id: 'quickSearchButton'), BuddySupport.Position.RIGHT
+	                        quickSearchField.addActionListener quickSearchAction
+	                        quickSearchField.addBuddy commandButton(searchIcon, enabled: false, actionPerformed: quickSearchAction, id: 'quickSearchButton'), BuddySupport.Position.RIGHT
 						},
 						rowSpan: 1
 					])
@@ -252,16 +273,44 @@ class RibbonWindow extends JRibbonFrame {
 			panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
 				navigationPane.addBreadcrumbListener({ e ->
 					edt {
-						if (e.source.items[-1].data.class == SubscriptionContext) {
-							contentPane1.loadEntries(e.source.items[-1].data.node, this)
-						}
-						else if (e.source.items[-1].data.class == TagContext) {
-							def subscriptionNodes = []
-							e.source.items[-1].data.children.each {
-								subscriptionNodes << it.node
-							}
-							contentPane1.loadEntries(e.source.items[-1].data.name, subscriptionNodes, this)
-						}
+                        filterTextField.text = null
+                        unreadFilterCheckbox.selected = false
+                        importantFilterCheckbox.selected = false
+                        
+                        // enable/disable ribbon tasks..
+                        quickSearchField.text = null
+                        quickSearchField.enabled = !e.source.items[-1].data.leaf
+                        quickSearchButton.enabled = !e.source.items[-1].data.leaf
+                        
+                        doOutside {
+                            try {
+                                doLater {
+                                    contentPane.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+//                                    breadcrumb.enabled = false
+                                }
+                                
+        						if (e.source.items[-1].data.class == SubscriptionContext) {
+                                    def subscription = e.source.items[-1].data.node
+                                    title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+        							contentPane1.loadEntries(subscription)
+        						}
+        						else if (e.source.items[-1].data.class == TagContext) {
+        							def subscriptionNodes = []
+        							e.source.items[-1].data.children.each {
+        								subscriptionNodes << it.node
+        							}
+                                    def tag = e.source.items[-1].data.name
+                                    title = "$tag - ${rs('Newsagent Reader')}"
+        							contentPane1.loadEntries(tag, subscriptionNodes)
+        						}
+                            } finally {
+                                doLater {
+//                                    activityTable.scrollRectToVisible(activityTable.getCellRect(0, 0, true))
+                                    contentPane.cursor = Cursor.defaultCursor
+//                                    breadcrumb.enabled = true
+                                }
+                            }
+                        }
 					}
 				} as BreadcrumbPathListener)
 			}

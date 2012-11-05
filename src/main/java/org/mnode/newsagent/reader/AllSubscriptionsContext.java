@@ -38,7 +38,6 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.InvalidQueryException;
-import javax.jcr.query.Query;
 import javax.swing.Icon;
 
 import org.mnode.ousia.flamingo.BreadcrumbContext;
@@ -48,7 +47,7 @@ public class AllSubscriptionsContext extends AbstractQueryContext {
     private static final String QUERY = "SELECT * FROM [nt:unstructured] AS subscriptions WHERE ISDESCENDANTNODE(subscriptions, [/mn:subscriptions]) AND subscriptions.[mn:status] IS NOT NULL";
     
     public AllSubscriptionsContext(Session session) throws InvalidQueryException, RepositoryException {
-        super(session.getWorkspace().getQueryManager().createQuery(QUERY, Query.JCR_SQL2));
+        super(session, QUERY);
     }
     
 	@Override

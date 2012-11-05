@@ -29,39 +29,53 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.mnode.newsagent.reader
+package org.mnode.newsagent.reader;
 
-import java.awt.BorderLayout
+import java.util.List;
 
-import org.jdesktop.swingx.JXPanel
-import org.mnode.ousia.OusiaBuilder
-import org.mnode.ousia.flamingo.BreadcrumbContext
-import org.mnode.ousia.flamingo.BreadcrumbContextCallback
-import org.pushingpixels.flamingo.api.bcb.BreadcrumbItem
-import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.InvalidQueryException;
+import javax.jcr.query.Query;
+import javax.swing.Icon;
 
-class NavigationPane extends JXPanel {
+import org.mnode.ousia.flamingo.BreadcrumbContext;
+
+public class SearchContext extends AbstractQueryContext {
+
+    private static final String QUERY = "SELECT * FROM [nt:unstructured] AS subscriptions WHERE ISDESCENDANTNODE(subscriptions, [/mn:subscriptions]) AND subscriptions.[mn:status] IS NOT NULL";
+
+    private final String name;
     
-    OusiaBuilder swing = []
-    
-    NavigationPane(def session) {
-        layout = swing.borderLayout()
-        add swing.breadcrumbBar(id: 'breadcrumb', new BreadcrumbContextCallback(rootContext: new RootContext(session.rootNode)), throwsExceptions: false, constraints: BorderLayout.WEST)
+    public SearchContext(Session session, String name) throws InvalidQueryException, RepositoryException {
+        super(session, QUERY);
+        this.name = name;
     }
     
-    void addBreadcrumbListener(BreadcrumbPathListener listener) {
-        swing.breadcrumb.model.addPathListener listener
+    public SearchContext(Query query, String name) {
+        super(query);
+        this.name = name;
     }
     
-    void addBreadcrumbContext(BreadcrumbContext context) {
-        def breadcrumbItem = new BreadcrumbItem<SearchContext>(context.name, context)
-        //                        searchResult.icon = searchIcon
-        swing.edt {
-            breadcrumb.model.addLast(breadcrumbItem)
-        }
+    @Override
+    public List<? extends BreadcrumbContext> getChildren() {
+        return null;
     }
-    
-    BreadcrumbContext getCurrentContext() {
-        swing.breadcrumb.model.items[-1].data
+
+    @Override
+    public Icon getIcon() {
+        // TODO Auto-generated method stub
+        return null;
     }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean isLeaf() {
+        return true;
+    }
+
 }

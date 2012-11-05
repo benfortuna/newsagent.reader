@@ -87,6 +87,7 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
 		setForeground(defaultForeground);
     	setBackground(defaultBackground);
 		setFont(defaultFont);
+        setIcon(null);
     	
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         try {
@@ -94,7 +95,6 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
 //        	if (Arrays.asList("Today", "Yesterday", "Older Items").contains(value)) {
         	if (column == 0 && groupNames.contains(value)) {
         		setForeground(nonItemForeground);
-        		setIcon(null);
         	}
         	else {
 //              Node node = ((AbstractNodeTableModel) table.getModel()).getNodeAt(table.convertRowIndexToModel(row));
@@ -114,9 +114,6 @@ public class DefaultNodeTableCellRenderer extends DefaultTableCellRenderer {
                 }
                 if (column == 0) {
                 	setIcon(NodeUtils.getIcon(node.getParent()));
-                }
-                else {
-                	setIcon(null);
                 }
         	}
         }

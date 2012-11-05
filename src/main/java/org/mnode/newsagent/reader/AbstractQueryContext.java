@@ -31,6 +31,9 @@
  */
 package org.mnode.newsagent.reader;
 
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 
 import org.mnode.ousia.flamingo.BreadcrumbContext;
@@ -38,6 +41,10 @@ import org.mnode.ousia.flamingo.BreadcrumbContext;
 public abstract class AbstractQueryContext implements BreadcrumbContext {
 
     private final Query query;
+    
+    public AbstractQueryContext(Session session, String query) throws InvalidQueryException, RepositoryException {
+        this(session.getWorkspace().getQueryManager().createQuery(query, Query.JCR_SQL2));
+    }
     
     public AbstractQueryContext(Query query) {
         this.query = query;
