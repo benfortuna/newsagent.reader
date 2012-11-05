@@ -322,6 +322,11 @@
         <artifactId>junit</artifactId>
         <scope>test</scope>
     </dependency>
+    <dependency>
+    	<groupId>jfxrt</groupId>
+    	<artifactId>jfxrt</artifactId>
+    	<version>2.2.3</version>
+    </dependency>
 	</dependencies>
 	<url>http://basetools.org/newsagent</url>
 </project>
