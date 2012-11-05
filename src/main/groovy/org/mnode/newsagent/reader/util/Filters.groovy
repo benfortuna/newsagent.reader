@@ -65,7 +65,7 @@ class Filters {
 						baseList << true
 				}
 				*/
-				baseList << false//!e.seen()
+				baseList << !e['mn:seen']?.boolean //!e.seen()
 		} as Filterator)
 		
 		filters << new JCheckboxMatcherEditor(swing.importantFilterCheckbox, { baseList, e ->
