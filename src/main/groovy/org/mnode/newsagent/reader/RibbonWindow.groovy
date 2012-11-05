@@ -49,6 +49,7 @@ import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.reader.util.Filters
 import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.ousia.OusiaBuilder
+import org.mnode.ousia.SlidingCardLayout
 import org.mnode.ousia.flamingo.icons.NextSvgIcon
 import org.mnode.ousia.flamingo.icons.PowerSvgIcon
 import org.mnode.ousia.flamingo.icons.PreviousSvgIcon
@@ -86,8 +87,13 @@ class RibbonWindow extends JRibbonFrame {
 				}
 				action id: 'aboutAction', name: rs('About'), accelerator: 'F1', closure: {
 //					System.exit(0)
-//					slider.show(contentPane1, 'pane1')
-                    contentPane1.show('about')
+                    if (aboutView.showing) {
+                        slider.previous(sliderPane)
+                    }
+                    else {
+                        slider.show(sliderPane, 'AboutView')
+                    }
+//                    sliderPane.show('AboutView')
 				}
 				action id: 'preferencesAction', name: rs('Preferences'), closure: {
                     contentPane1.show('preferences')
@@ -309,54 +315,61 @@ class RibbonWindow extends JRibbonFrame {
         
         ribbon.minimized = true
 		
-		add swing.panel {
-			borderLayout()
-			//panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
-			panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
-				navigationPane.addBreadcrumbListener({ e ->
-					edt {
-                        filterTextField.text = null
-                        unreadFilterCheckbox.selected = false
-                        importantFilterCheckbox.selected = false
-                        
-                        // enable/disable ribbon tasks..
-                        quickSearchField.text = null
-                        quickSearchField.enabled = !e.source.items[-1].data.leaf
-                        quickSearchButton.enabled = !e.source.items[-1].data.leaf
-                        
-                        doOutside {
-                            try {
-                                doLater {
-                                    contentPane.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
-//                                    breadcrumb.enabled = false
-                                }
-                                
-        						if (e.source.items[-1].data.class == SubscriptionContext) {
-                                    def subscription = e.source.items[-1].data.node
-                                    title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
-        							contentPane1.loadEntries(subscription)
-        						}
-        						else if (e.source.items[-1].data.class == TagContext) {
-        							def subscriptionNodes = []
-        							e.source.items[-1].data.children.each {
-        								subscriptionNodes << it.node
-        							}
-                                    def tag = e.source.items[-1].data.name
-                                    title = "$tag - ${rs('Newsagent Reader')}"
-        							contentPane1.loadEntries(tag, subscriptionNodes)
-        						}
-                            } finally {
-                                doLater {
-//                                    activityTable.scrollRectToVisible(activityTable.getCellRect(0, 0, true))
-                                    contentPane.cursor = Cursor.defaultCursor
-//                                    breadcrumb.enabled = true
+        
+		add swing.panel(id: 'sliderPane') {
+            cardLayout(new SlidingCardLayout(), id: 'slider')
+            
+            panel(constraints: 'FeedView') {
+    			borderLayout()
+    			//panel(new BreadcrumbPane(), id: 'breadcrumb', constraints: BorderLayout.NORTH)
+    			panel(new NavigationPane(session), id: 'navigationPane', constraints: BorderLayout.NORTH) {
+    				navigationPane.addBreadcrumbListener({ e ->
+    					edt {
+                            filterTextField.text = null
+                            unreadFilterCheckbox.selected = false
+                            importantFilterCheckbox.selected = false
+                            
+                            // enable/disable ribbon tasks..
+                            quickSearchField.text = null
+                            quickSearchField.enabled = !e.source.items[-1].data.leaf
+                            quickSearchButton.enabled = !e.source.items[-1].data.leaf
+                            
+                            doOutside {
+                                try {
+                                    doLater {
+                                        contentPane.cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+    //                                    breadcrumb.enabled = false
+                                    }
+                                    
+            						if (e.source.items[-1].data.class == SubscriptionContext) {
+                                        def subscription = e.source.items[-1].data.node
+                                        title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+            							contentPane1.loadEntries(subscription)
+            						}
+            						else if (e.source.items[-1].data.class == TagContext) {
+            							def subscriptionNodes = []
+            							e.source.items[-1].data.children.each {
+            								subscriptionNodes << it.node
+            							}
+                                        def tag = e.source.items[-1].data.name
+                                        title = "$tag - ${rs('Newsagent Reader')}"
+            							contentPane1.loadEntries(tag, subscriptionNodes)
+            						}
+                                } finally {
+                                    doLater {
+    //                                    activityTable.scrollRectToVisible(activityTable.getCellRect(0, 0, true))
+                                        contentPane.cursor = Cursor.defaultCursor
+    //                                    breadcrumb.enabled = true
+                                    }
                                 }
                             }
-                        }
-					}
-				} as BreadcrumbPathListener)
-			}
-			panel(new ViewPane(session, actionContext, gas, new Filters(swing)), id: 'contentPane1')
-		}
+    					}
+    				} as BreadcrumbPathListener)
+    			}
+    			panel(new ViewPane(session, actionContext, gas, new Filters(swing)), id: 'contentPane1')
+    		}
+        
+            panel(new AboutView(), id: 'aboutView', constraints: 'AboutView')
+        }
 	}
 }
