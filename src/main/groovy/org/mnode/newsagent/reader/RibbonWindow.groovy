@@ -31,6 +31,8 @@
  */
 package org.mnode.newsagent.reader
 
+import groovy.xml.MarkupBuilder
+
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
@@ -39,8 +41,11 @@ import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 
+import javax.swing.JFileChooser
+
 import org.jdesktop.swingx.prompt.BuddySupport
 import org.mnode.juicer.query.QueryBuilder
+import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.reader.util.Filters
 import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.ousia.OusiaBuilder
@@ -49,7 +54,6 @@ import org.mnode.ousia.flamingo.icons.PowerSvgIcon
 import org.mnode.ousia.flamingo.icons.PreviousSvgIcon
 import org.mnode.ousia.flamingo.icons.ReloadSvgIcon
 import org.mnode.ousia.flamingo.icons.StarSvgIcon
-import org.pushingpixels.flamingo.api.bcb.BreadcrumbItem
 import org.pushingpixels.flamingo.api.bcb.BreadcrumbPathListener
 import org.pushingpixels.flamingo.api.common.JCommandButton.CommandButtonKind
 import org.pushingpixels.flamingo.api.common.icon.EmptyResizableIcon
@@ -63,11 +67,16 @@ class RibbonWindow extends JRibbonFrame {
     
 	GroupAndSort gas = []
 	
+    OpmlImporterImpl importer = []
+    
 	RibbonWindow(def session, def swing = new OusiaBuilder()) {
 	
         StarSvgIcon searchIcon = []
+        StarSvgIcon feedIcon = []
         
 		swing.build {
+            fileChooser(id: 'chooser')
+            
 			actions {
 				action id: 'newAction', name: rs('New Item'), accelerator: shortcut('N'), closure: {
 //					System.exit(0)
@@ -101,6 +110,34 @@ class RibbonWindow extends JRibbonFrame {
                         navigationPane.addBreadcrumbContext pr
                     }
                 }
+                
+                action id: 'importFeedsAction', name: rs('Feeds'), closure: {
+                    if (chooser.showOpenDialog() == JFileChooser.APPROVE_OPTION) {
+                        doOutside {
+                            importer.importOpml(chooser.selectedFile)
+                        }
+                    }
+                }
+                action id: 'exportFeedsAction', name: rs('Feeds'), closure: {
+                    if (chooser.showSaveDialog() == JFileChooser.APPROVE_OPTION) {
+                        doOutside {
+                            FileWriter writer = [chooser.selectedFile]
+                            MarkupBuilder opmlBuilder = [writer]
+                            opmlBuilder.opml(version: '1.0') {
+                                body {
+                                    /*
+                                    for (feedNode in session.rootNode.getNode('Feeds').nodes) {
+                                        if (!feedNode.hasNode('query')) {
+                                            outline(title: "${feedNode.getProperty('title').string}",
+                                                xmlUrl: "${feedNode.getProperty('url').string}")
+                                        }
+                                    }
+                                    */
+                                }
+                            }
+                        }
+                    }
+                }
 			}
 		}
 
@@ -119,8 +156,13 @@ class RibbonWindow extends JRibbonFrame {
 				ribbonApplicationMenuEntryPrimary(id: 'saveAsMenu', icon: blankIcon, text: rs('Save As'), kind: CommandButtonKind.ACTION_AND_POPUP_MAIN_ACTION)
 				appMenu.addMenuSeparator()
 				
+                ribbonApplicationMenuEntrySecondary(id: 'importFeeds', icon: feedIcon, text: rs('Feed Subscriptions'), kind: CommandButtonKind.ACTION_ONLY, actionPerformed: importFeedsAction)
+                ribbonApplicationMenuEntrySecondary(id: 'exportFeeds', icon: feedIcon, text: rs('Feed Subscriptions'), kind: CommandButtonKind.ACTION_ONLY, actionPerformed: exportFeedsAction)
+    
 				ribbonApplicationMenuEntryPrimary(id: 'importMenu', icon: blankIcon, text: rs('Import'), kind: CommandButtonKind.POPUP_ONLY)
+                importMenu.addSecondaryMenuGroup 'Import external data', importFeeds
 				ribbonApplicationMenuEntryPrimary(id: 'exportMenu', icon: blankIcon, text: rs('Export'), kind: CommandButtonKind.POPUP_ONLY)
+                exportMenu.addSecondaryMenuGroup 'Export data', exportFeeds
 				appMenu.addMenuSeparator()
 				
 				ribbonApplicationMenuEntryPrimary(icon: new PowerSvgIcon(), text: rs('Exit'), kind: CommandButtonKind.ACTION_ONLY, actionPerformed: exitAction)
