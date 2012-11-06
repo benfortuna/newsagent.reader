@@ -130,25 +130,9 @@
 							</execution>
 						</executions>
 						<configuration>
-							<!--outputDirectory></outputDirectory --> <!-- not required?? -->
-							<!-- Set to true to exclude all transitive dependencies. Default is 
-								false. -->
-							<excludeTransitive>false</excludeTransitive>
 							<!-- The path where the libraries are stored within the jnlp structure. 
 								not required. by default the libraries are within the working directory -->
 							<libPath>lib</libPath>
-							<!-- [optional] transitive dependencies filter - if omitted, all transitive 
-								dependencies are included -->
-							<dependencies>
-								<!-- Note that only groupId and artifactId must be specified here. 
-									because of a limitation of the Include/ExcludesArtifactFilter -->
-								<!-- <includes> <include>net.modularity.core:desktop</include> <include>net.modularity.core:xmpp</include> 
-									<include>net.modularity.core:mail</include> <include>net.modularity.core:calendar</include> 
-									<include>net.modularity.core:logging</include> <include>commons-lang:commons-lang</include> 
-									</includes> -->
-								<!-- excludes> <exclude></exclude> <excludes -->
-							</dependencies>
-
 							<resourcesDirectory>${project.basedir}/src/main/jnlp/resources</resourcesDirectory>
 
 							<!-- default value -->
@@ -163,7 +147,7 @@
 								<!-- used to automatically identify the jar containing the main class. -->
 								<!-- this is perhaps going to change -->
 								<mainClass>${mainClass}</mainClass>
-								<j2seVersion>1.6+</j2seVersion>
+								<j2seVersion>1.7+</j2seVersion>
 							</jnlp>
 
 
