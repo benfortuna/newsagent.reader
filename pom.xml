@@ -225,11 +225,9 @@
 								<phase>deploy</phase>
 								<configuration>
 									<tasks>
-										<scp file="target/${project.build.finalName}.zip" todir="modularity@mnode.org:basetools.org/newsagent"
-											keyfile="${user.home}/.ssh/id_rsa" passphrase="" />
+										<scp file="target/${project.build.finalName}.zip" todir="modularity@mnode.org:basetools.org/newsagent" />
 
 										<sshexec host="mnode.org" username="modularity"
-											keyfile="${user.home}/.ssh/id_rsa" passphrase=""
 											command="unzip -o basetools.org/newsagent/${project.build.finalName}.zip -d basetools.org/newsagent/webstart" />
 									</tasks>
 								</configuration>
