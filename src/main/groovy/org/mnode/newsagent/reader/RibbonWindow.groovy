@@ -36,20 +36,25 @@ import groovy.xml.MarkupBuilder
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
-import java.awt.Desktop;
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
+import java.lang.invoke.MethodHandleImpl.BindCaller.T
 
 import javax.swing.JFileChooser
-import javax.swing.JOptionPane;
 
 import org.jdesktop.swingx.prompt.BuddySupport
 import org.mnode.juicer.query.QueryBuilder
+import org.mnode.newsagent.FeedCallback;
+import org.mnode.newsagent.FeedReader
+import org.mnode.newsagent.FeedReaderImpl
+import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.OpmlImporterImpl
+import org.mnode.newsagent.jcr.JcrFeedCallback;
 import org.mnode.newsagent.reader.util.Filters
 import org.mnode.newsagent.reader.util.GroupAndSort
+import org.mnode.newsagent.util.FeedFetcherCacheImpl
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.SlidingCardLayout
 import org.mnode.ousia.flamingo.icons.NextSvgIcon
@@ -72,8 +77,16 @@ class RibbonWindow extends JRibbonFrame {
 	
     OpmlImporterImpl importer = []
     
+	FeedResolverImpl feedResolver = []
+	
+	FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
+	
+	FeedCallback callback
+	
 	RibbonWindow(def session, def swing = new OusiaBuilder()) {
 	
+		callback = new JcrFeedCallback(node:session.rootNode << 'mn:subscriptions', downloadEnclosures:false)
+		
         StarSvgIcon searchIcon = []
         StarSvgIcon feedIcon = []
         StarSvgIcon forwardIcon = []
@@ -161,6 +174,21 @@ class RibbonWindow extends JRibbonFrame {
                     }
                 }
                 action id: 'addFeedAction', name: rs('Add Subscription'), SmallIcon: feedIcon, closure: {
+					def subscriptionText = addFeedField.text
+					addFeedField.text = null
+					doOutside {
+						try {
+							def feedUrls = feedResolver.resolve(subscriptionText)
+							reader.read feedUrls[0], callback
+						} catch (def e) {
+							reader.read subscriptionText, callback
+						} finally {
+//							subscriptionNodes = subscriptionQuery.execute().nodes.toList()
+//							doLater {
+//								subscriptionTable.model = new SubscriptionTableModel(subscriptionNodes)
+//							}
+						}
+					}
                 }
                 
                 action id: 'bookmarkFeedAction', name: rs('Bookmark'), closure: {
