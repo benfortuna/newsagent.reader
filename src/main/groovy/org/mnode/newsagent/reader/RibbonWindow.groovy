@@ -333,18 +333,14 @@ class RibbonWindow extends JRibbonFrame {
 //				ribbonBand('Action1', id: 'action1Band', resizePolicies: ['mirror']),
                 
                 ribbonBand(rs('Subscribe'), id: 'feedSubscriptionBand', resizePolicies: ['mirror']) {
-                    ribbonComponent([
-                        component: commandButton(addFeedAction),
-                        /*
-                        component: textField(id: 'addFeedField', columns: 14, enabled: false, prompt: 'Add subscription..', promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY,
-                            keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}) {
-                            
-//                            addFeedField.addActionListener addFeedAction
-//                            addFeedField.addBuddy commandButton(searchIcon, enabled: false, actionPerformed: addFeedAction, id: 'addFeedButton'), BuddySupport.Position.RIGHT
-                        },
-                        */
-                        priority: RibbonElementPriority.TOP
-                    ])
+                    ribbonComponent(
+                        component: textField(id: 'addFeedField', columns: 10, prompt: 'Add subscription..', promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY,
+                            keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}),
+						rowSpan: 1
+                    ) {
+                        addFeedField.addActionListener addFeedAction
+                        addFeedField.addBuddy commandButton(searchIcon, enabled: false, actionPerformed: addFeedAction, id: 'addFeedButton'), BuddySupport.Position.RIGHT
+                    }
                 },
             
                 ribbonBand(rs('Update'), icon: forwardIcon, id: 'updateBand', resizePolicies: ['mirror']) {
