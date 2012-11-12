@@ -36,12 +36,14 @@ import groovy.xml.MarkupBuilder
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
+import java.awt.Desktop;
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 
 import javax.swing.JFileChooser
+import javax.swing.JOptionPane;
 
 import org.jdesktop.swingx.prompt.BuddySupport
 import org.mnode.juicer.query.QueryBuilder
@@ -74,6 +76,11 @@ class RibbonWindow extends JRibbonFrame {
 	
         StarSvgIcon searchIcon = []
         StarSvgIcon feedIcon = []
+        StarSvgIcon forwardIcon = []
+        StarSvgIcon bookmarkIcon = []
+        StarSvgIcon deleteIcon = []
+        StarSvgIcon okIcon = []
+        StarSvgIcon okAllIcon = []
         
 		swing.build {
             fileChooser(id: 'chooser')
@@ -116,7 +123,17 @@ class RibbonWindow extends JRibbonFrame {
                         navigationPane.addBreadcrumbContext pr
                     }
                 }
+                action id: 'markAsReadAction', name: rs('Mark As Read'), closure: {
+                    actionContext.markAsRead()
+                }
                 
+                action id: 'markAllReadAction', name: rs('Mark All Read'), closure: {
+                    actionContext.markAllRead()
+                }
+        
+                action id: 'deleteAction', name: rs('Delete'), SmallIcon: deleteIcon, closure: {
+                    actionContext.delete()
+                }
                 action id: 'importFeedsAction', name: rs('Feeds'), closure: {
                     if (chooser.showOpenDialog() == JFileChooser.APPROVE_OPTION) {
                         doOutside {
@@ -143,6 +160,11 @@ class RibbonWindow extends JRibbonFrame {
                             }
                         }
                     }
+                }
+                action id: 'addFeedAction', name: rs('Add Subscription'), SmallIcon: feedIcon, closure: {
+                }
+                
+                action id: 'bookmarkFeedAction', name: rs('Bookmark'), closure: {
                 }
 			}
 		}
@@ -309,7 +331,75 @@ class RibbonWindow extends JRibbonFrame {
 		
 		ribbon.addTask swing.build {
 			ribbonTask('Action', bands: [
-				ribbonBand('Action1', id: 'action1Band', resizePolicies: ['mirror']),
+//				ribbonBand('Action1', id: 'action1Band', resizePolicies: ['mirror']),
+                
+                ribbonBand(rs('Subscribe'), id: 'feedSubscriptionBand', resizePolicies: ['mirror']) {
+                    ribbonComponent([
+                        component: commandButton(addFeedAction),
+                        /*
+                        component: textField(id: 'addFeedField', columns: 14, enabled: false, prompt: 'Add subscription..', promptFontStyle: Font.ITALIC, promptForeground: Color.LIGHT_GRAY,
+                            keyPressed: {e-> if (e.keyCode == KeyEvent.VK_ESCAPE) e.source.text = null}) {
+                            
+//                            addFeedField.addActionListener addFeedAction
+//                            addFeedField.addBuddy commandButton(searchIcon, enabled: false, actionPerformed: addFeedAction, id: 'addFeedButton'), BuddySupport.Position.RIGHT
+                        },
+                        */
+                        priority: RibbonElementPriority.TOP
+                    ])
+                },
+            
+                ribbonBand(rs('Update'), icon: forwardIcon, id: 'updateBand', resizePolicies: ['mirror']) {
+                    ribbonComponent([
+                        component: commandToggleButton(bookmarkIcon, id: 'bookmarkFeedButton', enabled: false, action: bookmarkFeedAction),
+                        priority: RibbonElementPriority.TOP
+                    ])
+                    ribbonComponent([
+                        component: commandButton(okIcon, action: markAsReadAction),
+                        priority: RibbonElementPriority.MEDIUM
+                    ])
+                    ribbonComponent([
+                        component: commandButton(okAllIcon, action: markAllReadAction),
+                        priority: RibbonElementPriority.MEDIUM
+                    ])
+                    ribbonComponent([
+                        component: commandButton(deleteAction),
+                        priority: RibbonElementPriority.MEDIUM
+                    ])
+                },
+    
+                ribbonBand(rs('Share'), icon: forwardIcon, id: 'shareBand', resizePolicies: ['mirror']) {
+                    ribbonComponent([
+                        component: commandButton(rs('Post To Buzz'), actionPerformed: {
+                            contentPane1.shareSelectedEntry('http://www.google.com/buzz/post?url=%s')
+                        } as ActionListener),
+                        priority: RibbonElementPriority.TOP
+                    ])
+                    ribbonComponent([
+                        component: commandButton(rs('Twitter'), actionPerformed: {
+                            contentPane1.shareSelectedEntry('http://twitter.com/share?url=%s')
+                        } as ActionListener),
+                        priority: RibbonElementPriority.MEDIUM
+                    ])
+                    ribbonComponent([
+                        component: commandButton(rs('Facebook'), actionPerformed: {
+                            contentPane1.shareSelectedEntry('http://www.facebook.com/sharer.php?u=%s')
+                        } as ActionListener),
+                        priority: RibbonElementPriority.MEDIUM
+                    ])
+                    ribbonComponent(
+                        component: commandButton(rs('Reddit'), actionPerformed: {
+                            /*
+                            def selectedItem = activityTree[activityTable.convertRowIndexToModel(activityTable.selectedRow)]
+                            // feed item..
+                            if (selectedItem.node.hasProperty('link')) {
+                                Desktop.desktop.browse(URI.create("http://reddit.com/submit?url=${selectedItem.node.getProperty('link').value.string}&title=${URLEncoder.encode(selectedItem.node.getProperty('title').value.string, 'UTF-8')}"))
+                            }
+                            */
+                            contentPane1.shareSelectedEntry('http://reddit.com/submit?url=%s')
+                        } as ActionListener),
+                        priority: RibbonElementPriority.MEDIUM
+                    )
+                }
 			])
 		}
         

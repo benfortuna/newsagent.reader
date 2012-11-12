@@ -389,4 +389,14 @@ class ViewPane extends JXPanel {
 	void show(String viewId) {
 		layout.show(this, viewId)
 	}
+    
+    void shareSelectedEntry(String urlTemplate) {
+        swing.doOutside {
+            def selectedItem = entryTree[entryTable.convertRowIndexToModel(entryTable.selectedRow)]
+            // feed item..
+            if (selectedItem.hasProperty('mn:link')) {
+                Desktop.desktop.browse(URI.create(String.format(urlTemplate, selectedItem['mn:link'].string)))
+            }
+        }
+    }
 }
