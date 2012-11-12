@@ -78,7 +78,6 @@ class RibbonWindow extends JRibbonFrame {
         StarSvgIcon feedIcon = []
         StarSvgIcon forwardIcon = []
         StarSvgIcon bookmarkIcon = []
-        StarSvgIcon deleteIcon = []
         StarSvgIcon okIcon = []
         StarSvgIcon okAllIcon = []
         
@@ -131,7 +130,7 @@ class RibbonWindow extends JRibbonFrame {
                     actionContext.markAllRead()
                 }
         
-                action id: 'deleteAction', name: rs('Delete'), SmallIcon: deleteIcon, closure: {
+                action id: 'deleteAction', name: rs('Delete'), SmallIcon: svgIcon('Delete'), closure: {
                     actionContext.delete()
                 }
                 action id: 'importFeedsAction', name: rs('Feeds'), closure: {
