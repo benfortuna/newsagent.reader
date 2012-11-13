@@ -78,8 +78,8 @@ Thread.start {
 	}
 }
 
-//File repositoryLocation = [System.getProperty("user.home"), ".newsagent/data"]
-File repositoryLocation = ['target/repository']
+File repositoryLocation = [System.getProperty("user.home"), ".newsagent/data"]
+//File repositoryLocation = ['target/repository']
 
 def context = new InitialContext()
 RegistryHelper.registerRepository(context, 'newsagent', configFile.absolutePath, repositoryLocation.absolutePath, false)
@@ -101,7 +101,7 @@ JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloa
 FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
-importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
+//importer.importOpml(new FileInputStream('src/test/resources/google-reader-subscriptions.xml'), new JcrOpmlCallback(node: session.rootNode))
 
 def updateFeed
 updateFeed = { feedNode ->
