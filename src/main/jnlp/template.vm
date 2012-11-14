@@ -30,7 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *#
 <?xml version="1.0" encoding="UTF-8"?>
-<jnlp spec="$jnlpspec" codebase="$project.Url/webstart" href="$outputFile">
+<jnlp spec="$jnlpspec" codebase="$project.Url/webstart" href="$outputFile" xmlns:jfx="http://javafx.com">
   <information>
     <title>$project.Name</title>
     <vendor>$project.Organization.Name</vendor>
@@ -56,6 +56,7 @@
 #end
   <resources>
     <j2se version="$j2seVersion"/>
+    <jfx:javafx-runtime version="2.2+"/>
      $dependencies
   </resources>
   <application-desc main-class="$mainClass"/>
