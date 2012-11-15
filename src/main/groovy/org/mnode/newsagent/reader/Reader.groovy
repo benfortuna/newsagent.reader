@@ -96,8 +96,10 @@ try {
 catch (NamespaceException e) {
 	println e.message
 }
-JcrFeedCallback callback = [node:session.rootNode << 'mn:subscriptions', downloadEnclosures:false]
+JcrFeedCallback callback = [node:session.save {rootNode << 'mn:subscriptions'}, downloadEnclosures:false]
 //
+session.save {rootNode << 'mn:tags'}
+
 FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
 //reader.read(new FeedResolverImpl().resolve("slashdot.org")[0], callback)
 OpmlImporterImpl importer = []
