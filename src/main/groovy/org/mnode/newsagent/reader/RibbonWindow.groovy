@@ -31,6 +31,7 @@
  */
 package org.mnode.newsagent.reader
 
+import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
 import java.awt.BorderLayout
@@ -45,12 +46,14 @@ import javax.swing.JFileChooser
 
 import org.jdesktop.swingx.prompt.BuddySupport
 import org.mnode.juicer.query.QueryBuilder
-import org.mnode.newsagent.FeedCallback;
+import org.mnode.newsagent.FeedCallback
 import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
 import org.mnode.newsagent.FeedResolverImpl
+import org.mnode.newsagent.OpmlCallback
 import org.mnode.newsagent.OpmlImporterImpl
-import org.mnode.newsagent.jcr.JcrFeedCallback;
+import org.mnode.newsagent.jcr.JcrFeedCallback
+import org.mnode.newsagent.jcr.JcrOpmlCallback
 import org.mnode.newsagent.reader.util.Filters
 import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.newsagent.util.FeedFetcherCacheImpl
@@ -68,23 +71,27 @@ import org.pushingpixels.flamingo.api.common.icon.ImageWrapperResizableIcon
 import org.pushingpixels.flamingo.api.ribbon.JRibbonFrame
 import org.pushingpixels.flamingo.api.ribbon.RibbonElementPriority
 
+@Slf4j
 class RibbonWindow extends JRibbonFrame {
 
     def actionContext = [] as ObservableMap
     
-	GroupAndSort gas = []
+	final GroupAndSort gas = []
 	
-    OpmlImporterImpl importer = []
+    final OpmlImporterImpl importer = []
     
-	FeedResolverImpl feedResolver = []
+	final FeedResolverImpl feedResolver = []
 	
-	FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
+	final FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
 	
-	FeedCallback callback
+	final FeedCallback callback
+    
+    final OpmlCallback opmlCallback
 	
 	RibbonWindow(def session, def swing = new OusiaBuilder()) {
 	
 		callback = new JcrFeedCallback(node:session.rootNode << 'mn:subscriptions', downloadEnclosures:false)
+        opmlCallback = new JcrOpmlCallback(node: session.rootNode)
 		
         StarSvgIcon searchIcon = []
         StarSvgIcon feedIcon = []
@@ -147,8 +154,15 @@ class RibbonWindow extends JRibbonFrame {
                 }
                 action id: 'importFeedsAction', name: rs('Feeds'), closure: {
                     if (chooser.showOpenDialog() == JFileChooser.APPROVE_OPTION) {
-                        doOutside {
-                            importer.importOpml(chooser.selectedFile)
+                        
+                        log.info "Importing subscriptions from: $chooser.selectedFile"
+                        Thread.start {
+                            try {
+                                importer.importOpml(chooser.selectedFile, opmlCallback)
+//                                updateFeed session.rootNode['mn:subscriptions']
+                            } catch (def e) {
+                                log.error e
+                            }
                         }
                     }
                 }
