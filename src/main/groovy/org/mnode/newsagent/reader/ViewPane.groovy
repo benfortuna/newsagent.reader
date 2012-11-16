@@ -128,7 +128,7 @@ class ViewPane extends JXPanel {
         add swing.build {
             panel {
             borderLayout()
-            splitPane(orientation: JSplitPane.VERTICAL_SPLIT, dividerLocation: 200, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
+            splitPane(id: 'splitPane', orientation: JSplitPane.HORIZONTAL_SPLIT, resizeWeight: 0.75, continuousLayout: true, oneTouchExpandable: true, dividerSize: 10) {
                 /*
     			splitPane(constraints: 'left', dividerSize: 7, continuousLayout: true, oneTouchExpandable: true) {
     				scrollPane(horizontalScrollBarPolicy: JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
@@ -399,4 +399,12 @@ class ViewPane extends JXPanel {
             }
         }
     }
+	
+	void setOrientation(def orientation) {
+		swing.doLater {
+			splitPane.orientation = orientation
+			splitPane.revalidate()
+//			splitPane.dividerLocation = 0.5 as Double
+		}
+	}
 }

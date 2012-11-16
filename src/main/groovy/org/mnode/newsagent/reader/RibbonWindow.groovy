@@ -43,6 +43,7 @@ import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 
 import javax.swing.JFileChooser
+import javax.swing.JSplitPane;
 
 import org.jdesktop.swingx.prompt.BuddySupport
 import org.mnode.juicer.query.QueryBuilder
@@ -359,6 +360,33 @@ class RibbonWindow extends JRibbonFrame {
                              } as ActionListener) {toggleTableHeader.actionModel.selected = true}, 
                         priority: RibbonElementPriority.TOP
                     )
+				},
+				
+				ribbonBand('Layout', id: 'layoutBand', resizePolicies: ['mirror']) {
+					ribbonComponent([
+						component: comboBox(items: [rs('Horizontal'), rs('Vertical')] as Object[], editable: false, itemStateChanged: { e->
+							if (e.source.selectedItem == 'Horizontal') {
+								contentPane1.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
+							}
+							else {
+								contentPane1.setOrientation(JSplitPane.VERTICAL_SPLIT)
+							}
+						}),
+						rowSpan: 1
+/*
+						component: commandToggleButton(id: 'toggleOrientation', rs('Orientation'),
+							 actionPerformed: { e->
+								 if (e.source.actionModel.selected) {
+									 contentPane1.setOrientation(JSplitPane.HORIZONTAL_SPLIT)
+								 }
+								 else {
+									 contentPane1.setOrientation(JSplitPane.VERTICAL_SPLIT)
+								 }
+							 } as ActionListener) {toggleTableHeader.actionModel.selected = true},
+						priority: RibbonElementPriority.TOP
+ */
+					])
+
 				},
 			])
 		}
