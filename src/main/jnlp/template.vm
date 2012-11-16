@@ -60,4 +60,5 @@
      $dependencies
   </resources>
   <application-desc main-class="$mainClass"/>
+  <update check="background"/>
 </jnlp>
