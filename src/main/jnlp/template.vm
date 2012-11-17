@@ -58,6 +58,10 @@
     <j2se version="$j2seVersion"/>
     <jfx:javafx-runtime version="2.2+"/>
      $dependencies
+    <!-- Use this property once version 1.0 is deployed --> 
+    <!-- 
+    <property name="jnlp.versionEnabled" value="true"/>
+    -->
   </resources>
   <application-desc main-class="$mainClass"/>
   <update policy="prompt-update"/>
