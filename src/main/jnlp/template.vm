@@ -60,5 +60,5 @@
      $dependencies
   </resources>
   <application-desc main-class="$mainClass"/>
-  <update check="background"/>
+  <update policy="prompt-update"/>
 </jnlp>
