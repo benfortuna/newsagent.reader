@@ -59,3 +59,4 @@ appender("FILE", RollingFileAppender) {
 }
 
 root(Level.INFO, ["CONSOLE", "FILE"])
+logger('org.mnode.newsagent', Level.DEBUG)

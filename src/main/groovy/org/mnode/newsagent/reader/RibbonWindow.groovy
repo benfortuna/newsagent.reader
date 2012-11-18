@@ -101,6 +101,19 @@ class RibbonWindow extends JRibbonFrame {
         StarSvgIcon okIcon = []
         StarSvgIcon okAllIcon = []
         
+		
+		def updateFeed
+		updateFeed = { feedNode ->
+		  if (feedNode['mn:link']) {
+			reader.read new URL(feedNode['mn:link'].string), callback
+		  }
+		  else {
+			feedNode.nodes.each {
+			  updateFeed it
+			}
+		  }
+		}
+		
 		swing.build {
             fileChooser(id: 'chooser')
             
@@ -160,9 +173,9 @@ class RibbonWindow extends JRibbonFrame {
                         Thread.start {
                             try {
                                 importer.importOpml(chooser.selectedFile, opmlCallback)
-//                                updateFeed session.rootNode['mn:subscriptions']
+                                updateFeed session.rootNode['mn:subscriptions']
                             } catch (def e) {
-                                log.error e
+                                log.error 'Error importing opml', e
                             }
                         }
                     }
