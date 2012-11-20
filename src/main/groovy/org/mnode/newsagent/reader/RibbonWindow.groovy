@@ -319,19 +319,19 @@ class RibbonWindow extends JRibbonFrame {
 			ribbonTask('View', bands: [
 				ribbonBand(rs('Group By'), icon: taskIcon, id: 'groupByBand', resizePolicies: ['mirror']) {
 					ribbonComponent([
-						component: comboBox(items: [rs('Date'), rs('Source')] as Object[], editable: false, itemStateChanged: { e->
-							contentPane1.groupEntries(e.source.selectedItem)
+						component: list(items: [rs('Date'), rs('Source')] as Object[], valueChanged: { e->
+							contentPane1.groupEntries(e.source.selectedValue)
 						}),
-						rowSpan: 1
+						rowSpan: 2
 					])
 				},
 			
 				ribbonBand(rs('Sort By'), icon: taskIcon, id: 'sortBand', resizePolicies: ['mirror']) {
 					ribbonComponent([
-						component: comboBox(items: gas.sortComparators.keySet() as Object[], editable: false, itemStateChanged: { e->
-							contentPane1.sortEntries(e.source.selectedItem)
+						component: list(items: gas.sortComparators.keySet() as Object[], valueChanged: { e->
+							contentPane1.sortEntries(e.source.selectedValue)
 						}),
-						rowSpan: 1
+						rowSpan: 2
 					])
 		//			commandButton(rs('Sort Order'), commandButtonKind: CommandButtonKind.POPUP_ONLY, popupOrientationKind: CommandButtonPopupOrientationKind.SIDEWARD, popupCallback: {
 		//				commandPopupMenu() {
