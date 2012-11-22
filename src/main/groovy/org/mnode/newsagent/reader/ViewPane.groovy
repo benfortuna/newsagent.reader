@@ -191,7 +191,7 @@ class ViewPane extends JXPanel {
     						        allowsChildren: {element -> true},
     						        getComparator: {depth -> },
     						        getPath: {path, element ->
-    									path << gas.dateGroup(element['mn:date'].date)
+    									path << gas.dateGroup(element['mn:date']?.date)
     									path << element
     								 }
     						    ] as Format<?>, id: 'entryTree')
@@ -334,7 +334,10 @@ class ViewPane extends JXPanel {
             entries.withWriteLock {
                 clear()
                 query.execute().nodes.each {
-                    add it
+                    // XXX: quick hack to exclude subscription nodes..
+                    if (it['mn:status'] == null) {
+                        add it
+                    }
                 }
             }
 //            frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
