@@ -43,7 +43,9 @@ import javafx.embed.swing.JFXPanel
 import javafx.scene.Scene
 import javafx.scene.web.WebView
 
+import javax.jcr.NodeIterator;
 import javax.jcr.Session
+import javax.jcr.query.Query;
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.SwingUtilities
@@ -326,6 +328,19 @@ class ViewPane extends JXPanel {
 			entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
 		}
 	}
+    
+    void loadEntries(Query query) {
+        swing.doLater {
+            entries.withWriteLock {
+                clear()
+                query.execute().nodes.each {
+                    add it
+                }
+            }
+//            frame.title = "${subscription['mn:title'].string} - ${rs('Newsagent Reader')}"
+            entryTable.scrollRectToVisible(entryTable.getCellRect(0, 0, true))
+        }
+    }
 
 	void groupEntries(def selectedGroup) {
 		gas.selectedGroup = selectedGroup
