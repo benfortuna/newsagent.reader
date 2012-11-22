@@ -56,8 +56,8 @@ class GroupAndSort {
 	} as Comparator
 	
 	def groupComparators = [
-		'Date': {a, b -> dateGroupComparator.compare(dateGroup(a['mn:date'].date), dateGroup(b['mn:date'].date))} as Comparator,
-		'Source': {a, b -> a.parent['mn:title'].string <=> b.parent['mn:title'].string} as Comparator
+		'Date': {a, b -> dateGroupComparator.compare(dateGroup(a['mn:date']?.date), dateGroup(b['mn:date']?.date))} as Comparator,
+		'Source': {a, b -> a.parent['mn:title']?.string <=> b.parent['mn:title']?.string} as Comparator
 	]
 	
 	def selectedGroup = 'Date'
@@ -66,19 +66,19 @@ class GroupAndSort {
 	def sortComparators = [
 		'Date': {a, b ->
 			int groupSort = groupComparators[selectedGroup].compare(a, b)
-			(groupSort != 0) ? groupSort : b['mn:date'].date <=> a['mn:date'].date
+			(groupSort != 0) ? groupSort : b['mn:date']?.date <=> a['mn:date']?.date
 		} as Comparator,
 	
 		'Title': {a, b ->
 			int groupSort = groupComparators[selectedGroup].compare(a, b)
 			groupSort = (groupSort != 0) ? groupSort : a['mn:title'].string <=> b['mn:title'].string
-			(groupSort != 0) ? groupSort : b['mn:date'].date <=> a['mn:date'].date
+			(groupSort != 0) ? groupSort : b['mn:date']?.date <=> a['mn:date']?.date
 		} as Comparator,
 	
 		'Source': {a, b ->
 			int groupSort = groupComparators[selectedGroup].compare(a, b)
-			groupSort = (groupSort != 0) ? groupSort : b.parent['mn:title'].string <=> a.parent['mn:title'].string
-			(groupSort != 0) ? groupSort : b['mn:date'].date <=> a['mn:date'].date
+			groupSort = (groupSort != 0) ? groupSort : b.parent['mn:title']?.string <=> a.parent['mn:title']?.string
+			(groupSort != 0) ? groupSort : b['mn:date']?.date <=> a['mn:date']?.date
 		} as Comparator
 	]
 
