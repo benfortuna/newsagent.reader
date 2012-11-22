@@ -146,7 +146,7 @@ class RibbonWindow extends JRibbonFrame {
                             query(
                                 source: selector(nodeType: 'nt:unstructured', name: 'items'),
                                 constraint: and(
-                                    constraint1: descendantNode(selectorName: 'items', path: navigationPane.currentContext.node.path),
+                                    constraint1: descendantNode(selectorName: 'items', path: (navigationPane.currentContext instanceof SubscriptionContext) ? navigationPane.currentContext.node.path : '/mn:subscriptions'),
                                     constraint2: fullTextSearch(selectorName: 'items', propertyName: 'mn:description', searchTerms: quickSearchField.text)
                                 )
                             )
@@ -522,6 +522,11 @@ class RibbonWindow extends JRibbonFrame {
                                         title = "$tag - ${rs('Newsagent Reader')}"
             							contentPane1.loadEntries(tag, subscriptionNodes)
             						}
+                                    else if (e.source.items[-1].data.class == SearchContext) {
+                                        def tag = e.source.items[-1].data.name
+                                        title = "$tag - ${rs('Newsagent Reader')}"
+                                        contentPane1.loadEntries(e.source.items[-1].data.query)
+                                    }
                                 } finally {
                                     doLater {
     //                                    activityTable.scrollRectToVisible(activityTable.getCellRect(0, 0, true))
