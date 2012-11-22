@@ -31,6 +31,8 @@
  */
 package org.mnode.newsagent.reader
 
+import java.lang.Thread.UncaughtExceptionHandler;
+
 import javax.jcr.NamespaceException
 import javax.jcr.Session
 import javax.jcr.SimpleCredentials
@@ -48,6 +50,10 @@ import org.mnode.newsagent.util.FeedFetcherCacheImpl
 import org.mnode.ousia.DialogExceptionHandler
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.flamingo.icons.LogoSvgIcon
+
+Thread.defaultUncaughtExceptionHandler = { thread, throwable ->
+    throwable.printStackTrace()
+} as UncaughtExceptionHandler
 
 try {
 	new Socket('localhost', 1337)
@@ -107,8 +113,8 @@ OpmlImporterImpl importer = []
 
 def updateFeed
 updateFeed = { feedNode ->
-  if (feedNode['mn:link']) {
-    reader.read new URL(feedNode['mn:link'].string), callback
+  if (feedNode['mn:source']) {
+    reader.read new URL(feedNode['mn:source'].string), callback
   }
   else {
     feedNode.nodes.each {

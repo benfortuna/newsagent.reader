@@ -104,8 +104,8 @@ class RibbonWindow extends JRibbonFrame {
 		
 		def updateFeed
 		updateFeed = { feedNode ->
-		  if (feedNode['mn:link']) {
-			reader.read new URL(feedNode['mn:link'].string), callback
+		  if (feedNode['mn:source']) {
+			reader.read new URL(feedNode['mn:source'].string), callback
 		  }
 		  else {
 			feedNode.nodes.each {
