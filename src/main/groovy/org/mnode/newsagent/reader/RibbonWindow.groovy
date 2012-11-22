@@ -206,7 +206,9 @@ class RibbonWindow extends JRibbonFrame {
 					doOutside {
 						try {
 							def feedUrls = feedResolver.resolve(subscriptionText)
-							reader.read feedUrls[0], callback
+							feedUrls.each {
+								reader.read it, callback
+							}
 						} catch (def e) {
 							reader.read subscriptionText, callback
 						} finally {
@@ -423,6 +425,13 @@ class RibbonWindow extends JRibbonFrame {
                         addFeedField.addActionListener addFeedAction
                         addFeedField.addBuddy commandButton(searchIcon, enabled: false, actionPerformed: addFeedAction, id: 'addFeedButton'), BuddySupport.Position.RIGHT
                     }
+					ribbonComponent([
+						component: panel() {
+							label(text: 'File under ')
+							comboBox(id: 'addFeedTagCombo', items: session.rootNode['mn:tags'].nodes.toList() as Object[], renderer: new TagListCellRenderer(), editable: false)
+						},
+						rowSpan: 1
+                	])
                 },
             
                 ribbonBand(rs('Update'), icon: forwardIcon, id: 'updateBand', resizePolicies: ['mirror']) {
@@ -446,8 +455,8 @@ class RibbonWindow extends JRibbonFrame {
     
                 ribbonBand(rs('Share'), icon: forwardIcon, id: 'shareBand', resizePolicies: ['mirror']) {
                     ribbonComponent([
-                        component: commandButton(rs('Post To Buzz'), actionPerformed: {
-                            contentPane1.shareSelectedEntry('http://www.google.com/buzz/post?url=%s')
+                        component: commandButton(rs('Post To Google+'), actionPerformed: {
+                            contentPane1.shareSelectedEntry('https://plus.google.com/share?url=%s')
                         } as ActionListener),
                         priority: RibbonElementPriority.TOP
                     ])
