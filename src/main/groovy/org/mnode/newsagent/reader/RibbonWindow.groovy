@@ -50,7 +50,6 @@ import org.mnode.juicer.query.QueryBuilder
 import org.mnode.newsagent.FeedCallback
 import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
-import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.OpmlCallback
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
@@ -58,6 +57,7 @@ import org.mnode.newsagent.jcr.JcrOpmlCallback
 import org.mnode.newsagent.reader.util.Filters
 import org.mnode.newsagent.reader.util.GroupAndSort
 import org.mnode.newsagent.util.FeedFetcherCacheImpl
+import org.mnode.newsagent.util.SiteResolver;
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.SlidingCardLayout
 import org.mnode.ousia.flamingo.icons.NextSvgIcon
@@ -81,7 +81,7 @@ class RibbonWindow extends JRibbonFrame {
 	
     final OpmlImporterImpl importer = []
     
-	final FeedResolverImpl feedResolver = []
+	final SiteResolver feedResolver = []
 	
 	final FeedReader reader = new FeedReaderImpl(new FeedFetcherCacheImpl('org.mnode.newsagent.reader.feedCache'))
 	
@@ -205,7 +205,7 @@ class RibbonWindow extends JRibbonFrame {
 					addFeedField.text = null
 					doOutside {
 						try {
-							def feedUrls = feedResolver.resolve(subscriptionText)
+							def feedUrls = feedResolver.getFeedUrls(subscriptionText)
 							feedUrls.each {
 								reader.read it, callback
 							}

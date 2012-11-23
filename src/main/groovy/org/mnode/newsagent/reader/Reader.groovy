@@ -42,11 +42,11 @@ import javax.swing.JFrame
 import org.apache.jackrabbit.core.jndi.RegistryHelper
 import org.mnode.newsagent.FeedReader
 import org.mnode.newsagent.FeedReaderImpl
-import org.mnode.newsagent.FeedResolverImpl
 import org.mnode.newsagent.OpmlImporterImpl
 import org.mnode.newsagent.jcr.JcrFeedCallback
 import org.mnode.newsagent.jcr.JcrOpmlCallback
 import org.mnode.newsagent.util.FeedFetcherCacheImpl
+import org.mnode.newsagent.util.SiteResolver;
 import org.mnode.ousia.DialogExceptionHandler
 import org.mnode.ousia.OusiaBuilder
 import org.mnode.ousia.flamingo.icons.LogoSvgIcon
@@ -123,7 +123,7 @@ updateFeed = { feedNode ->
   }
 }
 
-FeedResolverImpl feedResolver = []
+SiteResolver feedResolver = []
 
 ousia.edt {
 //	lookAndFeel('substance-mariner').fontPolicy = SubstanceFontUtilities.getScaledFontPolicy(1.2)
@@ -151,7 +151,7 @@ ousia.edt {
 			doOutside {
 				try {
 				//Desktop.desktop.browse(URI.create('http://basetools.org/coucou'))
-					def feedUrls = feedResolver.resolve(subscriptionText)
+					def feedUrls = feedResolver.getFeedUrls(subscriptionText)
 					reader.read feedUrls[0], callback
 				} catch (def e) {
 					reader.read subscriptionText, callback
