@@ -39,14 +39,14 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-public class TagListCellRenderer extends DefaultListCellRenderer implements ListCellRenderer<Object> {
+public class TagListCellRenderer extends DefaultListCellRenderer implements ListCellRenderer {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public Component getListCellRendererComponent(JList<? extends Object> list,
+	public Component getListCellRendererComponent(JList list,
 			Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
