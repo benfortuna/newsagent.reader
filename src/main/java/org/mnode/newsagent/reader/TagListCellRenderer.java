@@ -37,16 +37,15 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
-import javax.swing.ListCellRenderer;
 
-public class TagListCellRenderer extends DefaultListCellRenderer implements ListCellRenderer {
+public class TagListCellRenderer extends DefaultListCellRenderer {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public Component getListCellRendererComponent(JList list,
+	public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList list,
 			Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
