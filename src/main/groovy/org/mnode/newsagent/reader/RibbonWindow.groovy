@@ -216,7 +216,7 @@ class RibbonWindow extends JRibbonFrame {
                                 }
 							}
 						} catch (def e) {
-							reader.read subscriptionText, callback
+							reader.read new URL(subscriptionText), callback
 						} finally {
 //							subscriptionNodes = subscriptionQuery.execute().nodes.toList()
 //							doLater {
