@@ -50,12 +50,17 @@ public class TagListCellRenderer extends DefaultListCellRenderer {
 		
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 		
-		final Node node = (Node) value;
-		try {
-			setText(node.getProperty("mn:label").getString());
-		} catch (RepositoryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (value instanceof Node) {
+    		final Node node = (Node) value;
+    		try {
+    			setText(node.getProperty("mn:label").getString());
+    		} catch (RepositoryException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+		}
+		else {
+		    setText(value.toString());
 		}
 		return this;
 	}

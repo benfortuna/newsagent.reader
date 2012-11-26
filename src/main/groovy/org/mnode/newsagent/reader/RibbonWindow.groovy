@@ -206,8 +206,14 @@ class RibbonWindow extends JRibbonFrame {
 					doOutside {
 						try {
 							def feedUrls = feedResolver.getFeedUrls(subscriptionText)
+                            def tag = addFeedTagCombo.selectedIndex > 0 ? addFeedTagCombo.selectedItem.name : null
 							feedUrls.each {
-								reader.read it, callback
+                                if (tag) {
+                                    reader.read it, callback, tag
+                                }
+                                else {
+                                    reader.read it, callback
+                                }
 							}
 						} catch (def e) {
 							reader.read subscriptionText, callback
@@ -428,7 +434,9 @@ class RibbonWindow extends JRibbonFrame {
 					ribbonComponent([
 						component: panel() {
 							label(text: 'File under ')
-							comboBox(id: 'addFeedTagCombo', items: session.rootNode['mn:tags'].nodes.toList() as Object[], renderer: new TagListCellRenderer(), editable: false)
+                            def tags = ['<Uncategorised>']
+                            tags.addAll session.rootNode['mn:tags'].nodes.toList()
+							comboBox(id: 'addFeedTagCombo', items: tags as Object[], renderer: new TagListCellRenderer(), editable: false)
 						},
 						rowSpan: 1
                 	])
