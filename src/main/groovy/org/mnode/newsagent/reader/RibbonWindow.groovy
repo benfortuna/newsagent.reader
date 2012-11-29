@@ -138,6 +138,12 @@ class RibbonWindow extends JRibbonFrame {
                     contentPane1.show('preferences')
 				}
                 action id: 'refreshAction', name: rs('Refresh'), closure: {
+					doOutside {
+						updateFeed navigationPane.currentContext.node
+						doLater {
+							contentPane1.loadEntries(navigationPane.currentContext.node)
+						}
+					}
                 }
                 
                 action id: 'quickSearchAction', name: rs('Search Items'), closure: {
@@ -291,7 +297,7 @@ class RibbonWindow extends JRibbonFrame {
             
                 ribbonBand(rs('Load'), icon: taskIcon, id: 'loadBand', resizePolicies: ['mirror']) {
                     ribbonComponent(
-                        component: commandButton(new ReloadSvgIcon(), action: refreshAction),
+                        component: commandButton(id: 'refreshButton', new ReloadSvgIcon(), action: refreshAction),
                         priority: RibbonElementPriority.TOP
                     )
                     ribbonComponent(
@@ -517,7 +523,8 @@ class RibbonWindow extends JRibbonFrame {
                             quickSearchField.text = null
                             quickSearchField.enabled = !e.source.items[-1].data.leaf
                             quickSearchButton.enabled = !e.source.items[-1].data.leaf
-                            
+							refreshButton.enabled = e.source.items[-1].data.leaf
+							
                             doOutside {
                                 try {
                                     doLater {
