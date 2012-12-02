@@ -139,10 +139,24 @@ class RibbonWindow extends JRibbonFrame {
 				}
                 action id: 'refreshAction', name: rs('Refresh'), closure: {
 					doOutside {
-						updateFeed navigationPane.currentContext.node
-						doLater {
-							contentPane1.loadEntries(navigationPane.currentContext.node)
+						if (navigationPane.currentContext.class == SubscriptionContext) {
+							updateFeed navigationPane.currentContext.node
+							doLater {
+								contentPane1.loadEntries(navigationPane.currentContext.node)
+							}
 						}
+						else if (navigationPane.currentContext.class == TagContext) {
+							def subscriptionNodes = []
+							navigationPane.currentContext.children.each {
+								updateFeed it.node
+								subscriptionNodes << it.node
+							}
+							def tag = navigationPane.currentContext.name
+							doLater {
+								contentPane1.loadEntries(tag, subscriptionNodes)
+							}
+						}
+
 					}
                 }
                 
@@ -523,7 +537,12 @@ class RibbonWindow extends JRibbonFrame {
                             quickSearchField.text = null
                             quickSearchField.enabled = !e.source.items[-1].data.leaf
                             quickSearchButton.enabled = !e.source.items[-1].data.leaf
-							refreshButton.enabled = e.source.items[-1].data.leaf
+							if (e.source.items[-1].data.class in [SubscriptionContext, TagContext]) {
+								refreshButton.enabled = true
+							}
+							else {
+								refreshButton.enabled = false
+							}
 							
                             doOutside {
                                 try {
