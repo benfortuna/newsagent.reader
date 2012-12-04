@@ -56,7 +56,7 @@ Thread.defaultUncaughtExceptionHandler = { thread, throwable ->
 } as UncaughtExceptionHandler
 
 try {
-	new Socket('localhost', 1337)
+	new Socket('localhost', 61337)
 	println 'Already running'
 	System.exit(0)
 }
@@ -71,7 +71,7 @@ def ousia = new OusiaBuilder()
 //def sg = new SceneGraphBuilder()
 
 Thread.start {
-	ServerSocket server = [1337]
+	ServerSocket server = [61337]
 	while(true) {
 		try {
 			server.accept {}
